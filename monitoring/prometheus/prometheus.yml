@@ -1,6 +1,9 @@
 global:
   scrape_interval: 5s
 
+rule_files:
+  - alert.rules.yml
+
 scrape_configs:
   - job_name: "live-cricket-score-app"
     static_configs:

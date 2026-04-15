@@ -1,0 +1,29 @@
+groups:
+  - name: live-cricket-score-alerts
+    rules:
+      - alert: FlaskAppDown
+        expr: up{job="live-cricket-score-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Flask app is down"
+          description: "The live cricket score Flask app has been down for more than 1 minute."
+
+      - alert: CricketApiFailuresDetected
+        expr: increase(cricket_api_failures_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cricket API failures detected"
+          description: "One or more cricket API requests have failed in the last 5 minutes."
+
+      - alert: HighCricketApiResponseTime
+        expr: (rate(cricket_api_response_time_seconds_sum[5m]) / rate(cricket_api_response_time_seconds_count[5m])) > 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High cricket API response time"
+          description: "Average cricket API response time is above 2 seconds for more than 2 minutes."

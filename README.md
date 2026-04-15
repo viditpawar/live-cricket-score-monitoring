@@ -1,5 +1,12 @@
 # Live Cricket Score Monitoring Stack
 
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Flask](https://img.shields.io/badge/Framework-Flask-green)
+![Docker](https://img.shields.io/badge/Container-Docker-blue)
+![Prometheus](https://img.shields.io/badge/Monitoring-Prometheus-orange)
+![Grafana](https://img.shields.io/badge/Dashboard-Grafana-yellow)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+
 A DevOps monitoring project that instruments a Flask-based cricket score API and monitors it using Prometheus and Grafana.
 
 This project demonstrates application observability, containerized deployment, metrics instrumentation, and alerting using modern DevOps tools.
@@ -39,12 +46,13 @@ Alert Rules (Service Monitoring)
 - Prometheus metrics instrumentation
 - Custom metrics for request tracking
 - Grafana dashboards for visualization
-- Alert rules for service monitoring
+- Prometheus alert rules for service monitoring
 - Fully containerized deployment using Docker Compose
 
 ---
 
 ## Project Structure
+```
 live-cricket-score-monitoring
 │
 ├─ app
@@ -68,7 +76,7 @@ live-cricket-score-monitoring
 ├─ requirements.txt
 └─ README.md
 
-
+```
 ---
 
 ## Running the Project

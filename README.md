@@ -11,14 +11,9 @@ It collects custom Prometheus metrics, evaluates alert rules, and visualizes dat
 
 ## Architecture
 
-```text
-Users/Clients
-   |
-   v
-Flask API (port 5000) -----> CricAPI
-   |
-   +---- /metrics ----> Prometheus (port 9090) ----> Grafana (port 3000)
-```
+![Architecture Diagram](docs/diagrams/architecture.svg)
+
+Flow summary: `Users -> Flask API -> Prometheus -> Grafana`, with Flask also fetching live match data from CricAPI.
 
 ## Features
 
@@ -52,6 +47,7 @@ live-cricket-score-monitoring/
 |     |- dashboards/
 |     `- provisioning/
 |- docs/
+|  |- diagrams/
 |  `- screenshots/
 |- Dockerfile
 |- docker-compose.yml

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Cricket Scores</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #38bdf8;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #cbd5e1;
+            margin-bottom: 25px;
+        }
+
+        .top-bar {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #38bdf8;
+            color: #0f172a;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0ea5e9;
+        }
+
+        #scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .match-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #f8fafc;
+            line-height: 1.3;
+        }
+
+        .status {
+            color: #facc15;
+            margin-bottom: 14px;
+            font-weight: bold;
+        }
+
+        .label {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .value {
+            color: white;
+            font-size: 16px;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .error {
+            text-align: center;
+            color: #f87171;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏏 Live Cricket Scores</h1>
+    <div class="subtitle">All current matches</div>
+
+    <div class="top-bar">
+        <button onclick="loadScores()">Refresh</button>
+    </div>
+
+    <div id="scores">Loading matches...</div>
+
+    <script>
+        async function loadScores() {
+            const container = document.getElementById("scores");
+            container.innerHTML = "Loading matches...";
+
+            try {
+                const response = await fetch("/matches");
+                const data = await response.json();
+
+                if (data.error) {
+                    container.innerHTML = `<div class="error">${data.error}</div>`;
+                    return;
+                }
+
+                if (!data.matches || data.matches.length === 0) {
+                    container.innerHTML = `<div class="error">No current matches found.</div>`;
+                    return;
+                }
+
+                container.innerHTML = "";
+
+                data.matches.forEach(match => {
+                    const teams = match.teams ? match.teams.join(" vs ") : (match.name || "Match not available");
+
+                    const card = document.createElement("div");
+                    card.className = "card";
+
+                    card.innerHTML = `
+                        <div class="match-name">${teams}</div>
+                        <div class="status">${match.status || "Status unavailable"}</div>
+
+                        <div class="label">Match</div>
+                        <div class="value">${match.name || "N/A"}</div>
+
+                        <div class="label">Match Type</div>
+                        <div class="value">${match.match_type || "N/A"}</div>
+
+                        <div class="label">Venue</div>
+                        <div class="value">${match.venue || "N/A"}</div>
+
+                        <div class="label">Date</div>
+                        <div class="value">${match.date || "N/A"}</div>
+                    `;
+
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                container.innerHTML = `<div class="error">Failed to load matches.</div>`;
+            }
+        }
+
+        loadScores();
+        setInterval(loadScores, 15000);
+    </script>
+</body>
+</html>

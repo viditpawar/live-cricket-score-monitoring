@@ -1,7 +1,7 @@
 import os
 import time
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from dotenv import load_dotenv
 from prometheus_flask_exporter import PrometheusMetrics
 from prometheus_client import Counter, Histogram
@@ -63,9 +63,7 @@ def fetch_current_matches():
 
 @app.route("/")
 def home():
-    return jsonify({
-        "message": "Live Cricket Score Monitoring API is running"
-    })
+    return render_template("index.html")
 
 
 @app.route("/health")

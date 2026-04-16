@@ -140,94 +140,10 @@
             line-height: 1.5;
         }
 
-        .hero-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-end;
-            min-width: 240px;
-        }
-
-        .action-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .theme-switch {
-            display: inline-flex;
-            gap: 6px;
-            align-items: center;
-            padding: 6px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.24);
-        }
-
-        .theme-btn {
-            border: 1px solid transparent;
-            background: transparent;
-            color: #f8fbff;
-            border-radius: 999px;
-            padding: 6px 10px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
-        }
-
-        .theme-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .theme-btn.active {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.65);
-        }
-
-        .btn {
-            border: 0;
-            border-radius: 999px;
-            padding: 11px 16px;
-            font-weight: 700;
-            font-size: 0.86rem;
-            cursor: pointer;
-            transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
-        }
-
-        .btn:active {
-            transform: translateY(1px);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #4da4ff 0%, #2a82df 100%);
-            color: #f7fbff;
-            box-shadow: 0 10px 20px rgba(34, 119, 210, 0.35);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 24px rgba(34, 119, 210, 0.45);
-        }
-
-        .btn-muted {
-            background: rgba(255, 255, 255, 0.14);
-            color: #f5fbff;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-        }
-
-        .btn-muted:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-
         .status-strip {
             margin-top: 18px;
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
         }
 
@@ -268,7 +184,7 @@
 
         .board-top {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-columns: minmax(0, 1fr);
             gap: 12px;
             align-items: center;
             margin-bottom: 14px;
@@ -302,23 +218,6 @@
 
         .search-wrap input::placeholder {
             color: #8ea0b8;
-        }
-
-        .meta {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            color: var(--text-soft);
-            font-size: 0.84rem;
-        }
-
-        .meta .pill {
-            background: #edf3fa;
-            border: 1px solid #d5e1ef;
-            border-radius: 999px;
-            padding: 7px 10px;
-            white-space: nowrap;
         }
 
         .warning {
@@ -799,186 +698,6 @@
             max-width: 65%;
         }
 
-        body[data-theme="minimal"] .hero {
-            background: #ffffff;
-            border-color: #d7dde3;
-            color: #1f2b39;
-            box-shadow: 0 8px 24px rgba(33, 47, 63, 0.08);
-        }
-
-        body[data-theme="minimal"] .hero-subtitle {
-            color: #61707f;
-        }
-
-        body[data-theme="minimal"] .brand-mark {
-            background: rgba(31, 43, 57, 0.06);
-            border-color: rgba(31, 43, 57, 0.14);
-            color: #1f2b39;
-        }
-
-        body[data-theme="minimal"] .theme-switch {
-            background: rgba(31, 43, 57, 0.06);
-            border-color: rgba(31, 43, 57, 0.14);
-        }
-
-        body[data-theme="minimal"] .theme-btn {
-            color: #1f2b39;
-        }
-
-        body[data-theme="minimal"] .theme-btn.active {
-            background: rgba(31, 43, 57, 0.08);
-            border-color: rgba(31, 43, 57, 0.35);
-        }
-
-        body[data-theme="minimal"] .btn-muted {
-            background: rgba(31, 43, 57, 0.08);
-            border-color: rgba(31, 43, 57, 0.2);
-            color: #223245;
-        }
-
-        body[data-theme="minimal"] .stat-chip {
-            background: #f8fafc;
-            border-color: #d7dde3;
-        }
-
-        body[data-theme="minimal"] .stat-label {
-            color: #6f7f90;
-        }
-
-        body[data-theme="minimal"] .stat-value {
-            color: #1f2b39;
-        }
-
-        body[data-theme="minimal"]::before {
-            display: none;
-        }
-
-        body[data-theme="dark-stadium"] {
-            color: #d8e6f5;
-        }
-
-        body[data-theme="dark-stadium"] .hero {
-            background: linear-gradient(135deg, #081726 0%, #0e2841 55%, #133656 100%);
-            border-color: #2a4764;
-            color: #eaf4ff;
-            box-shadow: 0 22px 48px rgba(1, 9, 18, 0.56);
-        }
-
-        body[data-theme="dark-stadium"] .hero-subtitle {
-            color: #b7d0ea;
-        }
-
-        body[data-theme="dark-stadium"] .stat-chip {
-            background: rgba(7, 28, 48, 0.55);
-            border-color: rgba(80, 125, 167, 0.35);
-        }
-
-        body[data-theme="dark-stadium"] .stat-label {
-            color: #95b1cb;
-        }
-
-        body[data-theme="dark-stadium"] .stat-value {
-            color: #ecf6ff;
-        }
-
-        body[data-theme="dark-stadium"] .board {
-            background: rgba(8, 24, 40, 0.82);
-            border-color: rgba(65, 109, 146, 0.45);
-            box-shadow: 0 18px 34px rgba(1, 11, 20, 0.52);
-        }
-
-        body[data-theme="dark-stadium"] .search-wrap {
-            background: #0c2237;
-            border-color: #355a7c;
-        }
-
-        body[data-theme="dark-stadium"] .search-wrap svg {
-            color: #8fb0ce;
-        }
-
-        body[data-theme="dark-stadium"] .search-wrap input {
-            color: #d8e6f5;
-        }
-
-        body[data-theme="dark-stadium"] .meta .pill,
-        body[data-theme="dark-stadium"] .drawer-pill {
-            background: #0e2a45;
-            border-color: #35597a;
-            color: #b0c8df;
-        }
-
-        body[data-theme="dark-stadium"] .tab-btn {
-            background: #0e2b47;
-            border-color: #35597a;
-            color: #a5c0d8;
-        }
-
-        body[data-theme="dark-stadium"] .match-card {
-            background: #10283f;
-            border-color: #335675;
-            box-shadow: 0 8px 18px rgba(2, 12, 21, 0.44);
-        }
-
-        body[data-theme="dark-stadium"] .match-title,
-        body[data-theme="dark-stadium"] .team-name,
-        body[data-theme="dark-stadium"] .meta-line strong,
-        body[data-theme="dark-stadium"] .drawer-title,
-        body[data-theme="dark-stadium"] .drawer-team-name,
-        body[data-theme="dark-stadium"] .drawer-detail-line strong {
-            color: #e3f0fd;
-        }
-
-        body[data-theme="dark-stadium"] .status,
-        body[data-theme="dark-stadium"] .team-flag,
-        body[data-theme="dark-stadium"] .meta-line,
-        body[data-theme="dark-stadium"] .drawer-team-flag,
-        body[data-theme="dark-stadium"] .drawer-body,
-        body[data-theme="dark-stadium"] .drawer-detail-line {
-            color: #9cb6cf;
-        }
-
-        body[data-theme="dark-stadium"] .team-pill,
-        body[data-theme="dark-stadium"] .score,
-        body[data-theme="dark-stadium"] .drawer-score {
-            background: #0f314f;
-            border-color: #3c6487;
-            color: #d6ebff;
-        }
-
-        body[data-theme="dark-stadium"] .meta-line,
-        body[data-theme="dark-stadium"] .drawer-detail-line {
-            border-color: #2b4965;
-        }
-
-        body[data-theme="dark-stadium"] .theme-btn {
-            color: #e9f5ff;
-        }
-
-        body[data-theme="dark-stadium"] .theme-btn.active {
-            background: rgba(201, 224, 246, 0.15);
-            border-color: rgba(201, 224, 246, 0.65);
-        }
-
-        body[data-theme="dark-stadium"] .modal-backdrop {
-            background: rgba(1, 7, 14, 0.72);
-        }
-
-        body[data-theme="dark-stadium"] .match-drawer {
-            background: #0b2236;
-            border-color: #315270;
-            box-shadow: -12px 0 28px rgba(2, 11, 19, 0.6);
-        }
-
-        body[data-theme="dark-stadium"] .drawer-head,
-        body[data-theme="dark-stadium"] .drawer-team-card {
-            border-color: #315270;
-        }
-
-        body[data-theme="dark-stadium"] .drawer-close {
-            border-color: #315270;
-            color: #9bb4cd;
-        }
-
         @media (max-width: 980px) {
             .status-strip {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -988,21 +707,8 @@
                 grid-template-columns: 1fr;
             }
 
-            .meta {
-                justify-content: flex-start;
-            }
-
             .hero-top {
                 flex-direction: column;
-            }
-
-            .hero-actions {
-                align-items: flex-start;
-                min-width: 0;
-            }
-
-            .action-row {
-                justify-content: flex-start;
             }
         }
 
@@ -1077,7 +783,7 @@
         }
     </style>
 </head>
-<body data-theme="broadcast">
+<body>
     <main class="app-shell">
         <section class="hero">
             <div class="hero-top">
@@ -1091,17 +797,6 @@
                         Track live games, recent results, and upcoming fixtures on one smooth board.
                         Built for quick scanning with clear status colors and score-first cards.
                     </p>
-                </div>
-                <div class="hero-actions">
-                    <div class="action-row">
-                        <button id="refresh-btn" class="btn btn-primary" type="button">Refresh Now</button>
-                        <button id="clear-filter-btn" class="btn btn-muted" type="button">Clear Search</button>
-                    </div>
-                    <div class="theme-switch" role="group" aria-label="Choose theme">
-                        <button class="theme-btn active" data-theme="broadcast" type="button">Broadcast</button>
-                        <button class="theme-btn" data-theme="minimal" type="button">Minimal</button>
-                        <button class="theme-btn" data-theme="dark-stadium" type="button">Dark Stadium</button>
-                    </div>
                 </div>
             </div>
 
@@ -1118,10 +813,6 @@
                     <span class="stat-label">Upcoming</span>
                     <span id="upcoming-count" class="stat-value">0</span>
                 </div>
-                <div class="stat-chip">
-                    <span class="stat-label">Total Matches</span>
-                    <span id="total-count" class="stat-value">0</span>
-                </div>
             </div>
         </section>
 
@@ -1134,10 +825,6 @@
                     <input id="search-input" type="text" placeholder="Search team, match name, venue, or status">
                 </label>
 
-                <div class="meta">
-                    <span id="source-pill" class="pill">Source: -</span>
-                    <span id="updated-pill" class="pill">Updated: -</span>
-                </div>
             </div>
 
             <div id="warning" class="warning"></div>
@@ -1211,9 +898,6 @@
             "county": "GB"
         };
 
-        const THEME_STORAGE_KEY = "cricpulse_theme";
-        const AVAILABLE_THEMES = ["broadcast", "minimal", "dark-stadium"];
-
         const state = {
             allMatches: [],
             live: [],
@@ -1221,17 +905,13 @@
             upcoming: [],
             activeTab: "all",
             search: "",
-            lastUpdated: null,
             matchLookup: {},
             activeMatchKey: null,
-            theme: "broadcast"
+            detailFetchesById: {}
         };
 
         const tabs = Array.from(document.querySelectorAll(".tab-btn"));
-        const themeButtons = Array.from(document.querySelectorAll(".theme-btn"));
         const searchInput = document.getElementById("search-input");
-        const refreshButton = document.getElementById("refresh-btn");
-        const clearFilterButton = document.getElementById("clear-filter-btn");
         const modal = document.getElementById("match-modal");
         const drawerBody = document.getElementById("drawer-body");
         const drawerClose = document.getElementById("drawer-close");
@@ -1307,23 +987,89 @@
             return flagFromCountryCode(inferCountryCode(teamName));
         }
 
-        function normalizeDate(value) {
-            if (!value) {
+        function parseUtcDate(value) {
+            if (!value && value !== 0) {
+                return null;
+            }
+
+            if (value instanceof Date) {
+                return Number.isNaN(value.getTime()) ? null : value;
+            }
+
+            if (typeof value === "number") {
+                const asMilliseconds = value > 10_000_000_000 ? value : value * 1000;
+                const parsedFromNumber = new Date(asMilliseconds);
+                return Number.isNaN(parsedFromNumber.getTime()) ? null : parsedFromNumber;
+            }
+
+            if (typeof value !== "string") {
+                return null;
+            }
+
+            const trimmed = value.trim();
+            if (!trimmed) {
+                return null;
+            }
+
+            const isoWithoutOffset = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(trimmed)
+                && !/[zZ]|[+-]\d{2}:\d{2}$/.test(trimmed);
+            const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(trimmed);
+
+            let normalized = trimmed;
+            if (isoWithoutOffset) {
+                normalized += "Z";
+            } else if (dateOnly) {
+                normalized += "T00:00:00Z";
+            }
+
+            const parsed = new Date(normalized);
+            if (Number.isNaN(parsed.getTime())) {
+                return null;
+            }
+
+            return parsed;
+        }
+
+        function getMatchTimezone(match) {
+            return toSafeText(match.venue_timezone, "UTC");
+        }
+
+        function formatVenueLocalStart(match) {
+            const parsedDate = parseUtcDate(match.date);
+            if (!parsedDate) {
                 return "N/A";
             }
 
-            const parsed = new Date(value);
-            if (Number.isNaN(parsed.getTime())) {
-                return String(value);
+            const timezoneName = getMatchTimezone(match);
+            try {
+                const formatted = new Intl.DateTimeFormat(undefined, {
+                    timeZone: timezoneName,
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit"
+                }).format(parsedDate);
+
+                return `${formatted}`;
+            } catch (error) {
+                return parsedDate.toUTCString().replace("GMT", "UTC");
+            }
+        }
+
+        function normalizeScoreLines(match) {
+            if (Array.isArray(match.score_lines) && match.score_lines.length > 0) {
+                return match.score_lines
+                    .map((line) => toSafeText(line, "").trim())
+                    .filter(Boolean);
             }
 
-            return parsed.toLocaleString(undefined, {
-                weekday: "short",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit"
-            });
+            const scoreText = toSafeText(match.score, "").trim();
+            if (!scoreText) {
+                return [];
+            }
+
+            return scoreText.split("|").map((line) => line.trim()).filter(Boolean);
         }
 
         function matchTypeTag(match) {
@@ -1436,14 +1182,11 @@
                 live: preparedLive,
                 recent: preparedRecent,
                 upcoming: preparedUpcoming,
-                servedFromCache: Boolean(data.served_from_cache),
                 warning: data.warning || "",
-                cacheAge: data.cache_age_seconds,
                 counts: {
                     live: data.live_count ?? preparedLive.length,
                     recent: data.recent_count ?? preparedRecent.length,
-                    upcoming: data.upcoming_count ?? preparedUpcoming.length,
-                    total: data.total_matches ?? allMatches.length
+                    upcoming: data.upcoming_count ?? preparedUpcoming.length
                 }
             };
         }
@@ -1452,22 +1195,6 @@
             document.getElementById("live-count").textContent = counts.live;
             document.getElementById("recent-count").textContent = counts.recent;
             document.getElementById("upcoming-count").textContent = counts.upcoming;
-            document.getElementById("total-count").textContent = counts.total;
-        }
-
-        function updateMeta(servedFromCache, cacheAge) {
-            const sourceText = servedFromCache ? "Source: cached feed" : "Source: live feed";
-            document.getElementById("source-pill").textContent = sourceText;
-
-            const now = new Date();
-            state.lastUpdated = now;
-            let updatedText = "Updated: " + now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
-
-            if (servedFromCache && cacheAge !== undefined) {
-                updatedText += " | cache age " + cacheAge + "s";
-            }
-
-            document.getElementById("updated-pill").textContent = updatedText;
         }
 
         function updateWarning(message) {
@@ -1549,7 +1276,7 @@
             if (state.search.trim()) {
                 return "Try a different team name, venue, or clear the search filter.";
             }
-            return "Pull latest data using Refresh Now, or wait for the next automatic sync.";
+            return "Matches auto-refresh every minute. Please check back shortly.";
         }
 
         function renderEmptyState() {
@@ -1592,9 +1319,13 @@
         function createCard(match, index) {
             const tag = match.__tag || matchTypeTag(match);
             const badgeText = tag === "live" ? "Live" : tag === "recent" ? "Result" : "Upcoming";
-            const scoreText = toSafeText(match.score, "Score will appear when available");
-            const scoreClass = match.score ? "score" : "score empty";
+            const scoreLines = normalizeScoreLines(match);
+            const scoreText = scoreLines.length ? scoreLines.join(" | ") : "Score will appear when available";
+            const scoreClass = scoreLines.length ? "score" : "score empty";
             const teamsMarkup = (match.team_details || []).map(renderTeamPill).join("");
+            const venueText = toSafeText(match.venue, "Tap card to load venue");
+            const localStart = formatVenueLocalStart(match);
+            const timezoneName = getMatchTimezone(match);
 
             return `
                 <article class="match-card ${tag}" style="--delay:${index * 55}ms" tabindex="0" role="button" data-match-key="${escapeHtml(match.__key)}" aria-label="Open details for ${escapeHtml(toSafeText(match.name, "match"))}">
@@ -1607,8 +1338,9 @@
                     <p class="${scoreClass}">${escapeHtml(scoreText)}</p>
                     <div class="meta-grid">
                         <div class="meta-line"><span>Format</span><strong>${escapeHtml(toSafeText(match.match_type))}</strong></div>
-                        <div class="meta-line"><span>Venue</span><strong>${escapeHtml(toSafeText(match.venue))}</strong></div>
-                        <div class="meta-line"><span>Date</span><strong>${escapeHtml(normalizeDate(match.date))}</strong></div>
+                        <div class="meta-line"><span>Venue</span><strong>${escapeHtml(venueText)}</strong></div>
+                        <div class="meta-line"><span>Local Start</span><strong>${escapeHtml(localStart)}</strong></div>
+                        <div class="meta-line"><span>Timezone</span><strong>${escapeHtml(timezoneName)}</strong></div>
                     </div>
                 </article>
             `;
@@ -1641,17 +1373,16 @@
             renderMatches();
         }
 
-        function modalScoreMarkup(scoreText) {
-            if (!scoreText || scoreText === "N/A") {
+        function modalScoreMarkup(scoreLines) {
+            if (!Array.isArray(scoreLines) || scoreLines.length === 0) {
                 return `<div class="drawer-score">Score details are not available for this match yet.</div>`;
             }
 
-            const pieces = scoreText.split("|").map((item) => item.trim()).filter(Boolean);
-            if (pieces.length <= 1) {
-                return `<div class="drawer-score">${escapeHtml(scoreText)}</div>`;
+            if (scoreLines.length === 1) {
+                return `<div class="drawer-score">${escapeHtml(scoreLines[0])}</div>`;
             }
 
-            const rows = pieces.map((piece) => `<li>${escapeHtml(piece)}</li>`).join("");
+            const rows = scoreLines.map((piece) => `<li>${escapeHtml(piece)}</li>`).join("");
             return `<div class="drawer-score"><ul>${rows}</ul></div>`;
         }
 
@@ -1668,39 +1399,100 @@
             `;
         }
 
-        function openModal(matchKey) {
+        function renderModal(match) {
+            const tag = match.__tag || matchTypeTag(match);
+            const badgeText = tag === "live" ? "Live" : tag === "recent" ? "Result" : "Upcoming";
+            const scoreLines = normalizeScoreLines(match);
+            const teamMarkup = (match.team_details || []).map(drawerTeamCard).join("");
+            const localStart = formatVenueLocalStart(match);
+            const timezoneName = getMatchTimezone(match);
+
+            drawerBody.innerHTML = `
+                <div class="drawer-pill-row">
+                    <span class="drawer-pill">${escapeHtml(badgeText)}</span>
+                    <span class="drawer-pill">${escapeHtml(toSafeText(match.match_type))}</span>
+                    <span class="drawer-pill">${escapeHtml(timezoneName)}</span>
+                </div>
+                <p class="status">${escapeHtml(toSafeText(match.status, "Status unavailable"))}</p>
+                ${modalScoreMarkup(scoreLines)}
+                <div class="drawer-team-grid">${teamMarkup}</div>
+                <div class="drawer-details">
+                    <div class="drawer-detail-line"><span>Match</span><strong>${escapeHtml(toSafeText(match.name))}</strong></div>
+                    <div class="drawer-detail-line"><span>Series</span><strong>${escapeHtml(toSafeText(match.series, "N/A"))}</strong></div>
+                    <div class="drawer-detail-line"><span>Venue</span><strong>${escapeHtml(toSafeText(match.venue, "N/A"))}</strong></div>
+                    <div class="drawer-detail-line"><span>Local Start</span><strong>${escapeHtml(localStart)}</strong></div>
+                    <div class="drawer-detail-line"><span>Timezone</span><strong>${escapeHtml(timezoneName)}</strong></div>
+                </div>
+            `;
+        }
+
+        function mergeMatchFields(targetMatch, incomingMatch) {
+            if (!targetMatch || !incomingMatch) {
+                return;
+            }
+
+            Object.assign(targetMatch, incomingMatch);
+            targetMatch.team_details = normalizeTeamDetails(targetMatch);
+            targetMatch.__detailsLoaded = true;
+        }
+
+        async function fetchMatchDetails(match) {
+            const matchId = toSafeText(match.id, "").trim();
+            if (!matchId) {
+                return null;
+            }
+
+            if (match.__detailsLoaded) {
+                return match;
+            }
+
+            if (state.detailFetchesById[matchId]) {
+                return state.detailFetchesById[matchId];
+            }
+
+            const requestPromise = fetch("/match-details/" + encodeURIComponent(matchId))
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok || data.error) {
+                        return null;
+                    }
+
+                    return data.match || null;
+                })
+                .catch(() => null)
+                .finally(() => {
+                    delete state.detailFetchesById[matchId];
+                });
+
+            state.detailFetchesById[matchId] = requestPromise;
+            return requestPromise;
+        }
+
+        async function openModal(matchKey) {
             const match = state.matchLookup[matchKey];
             if (!match) {
                 return;
             }
 
             state.activeMatchKey = matchKey;
-            const tag = match.__tag || matchTypeTag(match);
-            const badgeText = tag === "live" ? "Live" : tag === "recent" ? "Result" : "Upcoming";
-            const scoreText = toSafeText(match.score, "N/A");
-            const teamMarkup = (match.team_details || []).map(drawerTeamCard).join("");
-
-            drawerBody.innerHTML = `
-                <div class="drawer-pill-row">
-                    <span class="drawer-pill">${escapeHtml(badgeText)}</span>
-                    <span class="drawer-pill">${escapeHtml(toSafeText(match.match_type))}</span>
-                    <span class="drawer-pill">${escapeHtml(normalizeDate(match.date))}</span>
-                </div>
-                <p class="status">${escapeHtml(toSafeText(match.status, "Status unavailable"))}</p>
-                ${modalScoreMarkup(scoreText)}
-                <div class="drawer-team-grid">${teamMarkup}</div>
-                <div class="drawer-details">
-                    <div class="drawer-detail-line"><span>Match</span><strong>${escapeHtml(toSafeText(match.name))}</strong></div>
-                    <div class="drawer-detail-line"><span>Series</span><strong>${escapeHtml(toSafeText(match.series, "N/A"))}</strong></div>
-                    <div class="drawer-detail-line"><span>Venue</span><strong>${escapeHtml(toSafeText(match.venue))}</strong></div>
-                    <div class="drawer-detail-line"><span>Date</span><strong>${escapeHtml(normalizeDate(match.date))}</strong></div>
-                </div>
-            `;
-
+            renderModal(match);
             modal.classList.add("open");
             modal.setAttribute("aria-hidden", "false");
             document.body.classList.add("modal-open");
             drawerClose.focus();
+
+            const detailedMatch = await fetchMatchDetails(match);
+            if (!detailedMatch) {
+                return;
+            }
+
+            mergeMatchFields(match, detailedMatch);
+            indexMatches(state.allMatches);
+            renderMatches();
+
+            if (state.activeMatchKey === matchKey && modal.classList.contains("open")) {
+                renderModal(match);
+            }
         }
 
         function closeModal() {
@@ -1708,36 +1500,6 @@
             modal.setAttribute("aria-hidden", "true");
             document.body.classList.remove("modal-open");
             state.activeMatchKey = null;
-        }
-
-        function applyTheme(themeName) {
-            const theme = AVAILABLE_THEMES.includes(themeName) ? themeName : "broadcast";
-            state.theme = theme;
-            document.body.setAttribute("data-theme", theme);
-
-            themeButtons.forEach((button) => {
-                button.classList.toggle("active", button.dataset.theme === theme);
-            });
-
-            try {
-                localStorage.setItem(THEME_STORAGE_KEY, theme);
-            } catch (error) {
-                // Ignore storage issues.
-            }
-        }
-
-        function initializeTheme() {
-            let saved = "broadcast";
-            try {
-                const stored = localStorage.getItem(THEME_STORAGE_KEY);
-                if (stored) {
-                    saved = stored;
-                }
-            } catch (error) {
-                saved = "broadcast";
-            }
-
-            applyTheme(saved);
         }
 
         async function loadMatches(forceRefresh = false) {
@@ -1761,7 +1523,6 @@
                 indexMatches(payload.allMatches);
 
                 updateTopCounts(payload.counts);
-                updateMeta(payload.servedFromCache, payload.cacheAge);
                 updateWarning(payload.warning);
                 renderMatches();
             } catch (error) {
@@ -1772,7 +1533,7 @@
                 state.recent = [];
                 state.upcoming = [];
                 state.matchLookup = {};
-                updateTopCounts({ live: 0, recent: 0, upcoming: 0, total: 0 });
+                updateTopCounts({ live: 0, recent: 0, upcoming: 0 });
                 renderMatches();
             }
         }
@@ -1781,20 +1542,8 @@
             tab.addEventListener("click", () => setActiveTab(tab.dataset.tab));
         });
 
-        themeButtons.forEach((button) => {
-            button.addEventListener("click", () => applyTheme(button.dataset.theme));
-        });
-
         searchInput.addEventListener("input", (event) => {
             state.search = event.target.value;
-            renderMatches();
-        });
-
-        refreshButton.addEventListener("click", () => loadMatches(true));
-
-        clearFilterButton.addEventListener("click", () => {
-            state.search = "";
-            searchInput.value = "";
             renderMatches();
         });
 
@@ -1833,7 +1582,6 @@
             }
         });
 
-        initializeTheme();
         loadMatches();
         setInterval(() => loadMatches(false), 60000);
     </script>

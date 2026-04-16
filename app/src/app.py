@@ -16,13 +16,88 @@ metrics = PrometheusMetrics(app, path="/metrics")
 API_KEY = os.getenv("CRICKET_API_KEY")
 CURRENT_MATCHES_URL = "https://api.cricapi.com/v1/currentMatches"
 HOME_MATCHES_URL = "https://api.cricapi.com/v1/cricScore"
+MATCH_INFO_URL = "https://api.cricapi.com/v1/match_info"
 MATCHES_CACHE_TTL_SECONDS = int(os.getenv("MATCHES_CACHE_TTL_SECONDS", "300"))
+MATCH_INFO_CACHE_TTL_SECONDS = int(os.getenv("MATCH_INFO_CACHE_TTL_SECONDS", "21600"))
 
 # Cache for homepage match cards to reduce API hits.
 home_matches_cache = {
     "timestamp": 0.0,
     "payload": None
 }
+
+# Cache for per-match detail lookups.
+match_info_cache = {}
+
+TIMEZONE_HINTS = (
+    ("india", "Asia/Kolkata"),
+    ("mumbai", "Asia/Kolkata"),
+    ("delhi", "Asia/Kolkata"),
+    ("chennai", "Asia/Kolkata"),
+    ("kolkata", "Asia/Kolkata"),
+    ("hyderabad", "Asia/Kolkata"),
+    ("bengaluru", "Asia/Kolkata"),
+    ("bangalore", "Asia/Kolkata"),
+    ("ahmedabad", "Asia/Kolkata"),
+    ("lucknow", "Asia/Kolkata"),
+    ("jaipur", "Asia/Kolkata"),
+    ("pakistan", "Asia/Karachi"),
+    ("lahore", "Asia/Karachi"),
+    ("karachi", "Asia/Karachi"),
+    ("rawalpindi", "Asia/Karachi"),
+    ("multan", "Asia/Karachi"),
+    ("islamabad", "Asia/Karachi"),
+    ("peshawar", "Asia/Karachi"),
+    ("quetta", "Asia/Karachi"),
+    ("sri lanka", "Asia/Colombo"),
+    ("colombo", "Asia/Colombo"),
+    ("galle", "Asia/Colombo"),
+    ("kandy", "Asia/Colombo"),
+    ("new zealand", "Pacific/Auckland"),
+    ("auckland", "Pacific/Auckland"),
+    ("wellington", "Pacific/Auckland"),
+    ("christchurch", "Pacific/Auckland"),
+    ("australia", "Australia/Sydney"),
+    ("sydney", "Australia/Sydney"),
+    ("melbourne", "Australia/Melbourne"),
+    ("brisbane", "Australia/Brisbane"),
+    ("perth", "Australia/Perth"),
+    ("adelaide", "Australia/Adelaide"),
+    ("hobart", "Australia/Hobart"),
+    ("england", "Europe/London"),
+    ("london", "Europe/London"),
+    ("manchester", "Europe/London"),
+    ("birmingham", "Europe/London"),
+    ("south africa", "Africa/Johannesburg"),
+    ("johannesburg", "Africa/Johannesburg"),
+    ("cape town", "Africa/Johannesburg"),
+    ("durban", "Africa/Johannesburg"),
+    ("bangladesh", "Asia/Dhaka"),
+    ("dhaka", "Asia/Dhaka"),
+    ("chattogram", "Asia/Dhaka"),
+    ("zimbabwe", "Africa/Harare"),
+    ("harare", "Africa/Harare"),
+    ("bulawayo", "Africa/Harare"),
+    ("namibia", "Africa/Windhoek"),
+    ("windhoek", "Africa/Windhoek"),
+    ("united states", "America/New_York"),
+    ("usa", "America/New_York"),
+    ("canada", "America/Toronto"),
+    ("west indies", "America/Jamaica"),
+    ("jamaica", "America/Jamaica"),
+    ("barbados", "America/Barbados"),
+    ("trinidad", "America/Port_of_Spain"),
+    ("afghanistan", "Asia/Kabul"),
+    ("nepal", "Asia/Kathmandu"),
+    ("uae", "Asia/Dubai"),
+    ("dubai", "Asia/Dubai"),
+    ("abu dhabi", "Asia/Dubai"),
+    ("ireland", "Europe/Dublin"),
+    ("dublin", "Europe/Dublin"),
+    ("scotland", "Europe/London"),
+    ("netherlands", "Europe/Amsterdam"),
+    ("amsterdam", "Europe/Amsterdam")
+)
 
 # Custom Prometheus metrics
 cricket_api_requests_total = Counter(
@@ -46,7 +121,7 @@ live_score_requests_total = Counter(
 )
 
 
-def fetch_cricket_api(endpoint, extra_params=None):
+def fetch_cricket_api(endpoint, extra_params=None, expect_list=True):
     cricket_api_requests_total.inc()
     start_time = time.time()
 
@@ -72,9 +147,14 @@ def fetch_cricket_api(endpoint, extra_params=None):
             reason = payload.get("reason") or payload.get("message") or "Unknown cricket API error"
             return [], reason
 
-        data = payload.get("data", [])
-        if not isinstance(data, list):
-            return [], None
+        data = payload.get("data")
+
+        if expect_list:
+            if not isinstance(data, list):
+                return [], None
+        else:
+            if data is None:
+                return None, None
 
         return data, None
 
@@ -100,12 +180,53 @@ def fetch_homepage_matches():
     return fetch_cricket_api(HOME_MATCHES_URL)
 
 
+def fetch_match_info(match_id):
+    return fetch_cricket_api(
+        MATCH_INFO_URL,
+        {
+            "id": match_id
+        },
+        expect_list=False
+    )
+
+
 def first_non_none(*values):
     for value in values:
         if value is not None:
             return value
 
     return None
+
+
+def clean_text(value):
+    if not isinstance(value, str):
+        return None
+
+    trimmed = value.strip()
+    if not trimmed:
+        return None
+
+    return trimmed
+
+
+def split_team_name(raw_name):
+    normalized = clean_text(raw_name)
+    if not normalized:
+        return None, None
+
+    short_name = None
+    if "[" in normalized and "]" in normalized and normalized.rfind("[") < normalized.rfind("]"):
+        start = normalized.rfind("[")
+        end = normalized.rfind("]")
+        short_candidate = normalized[start + 1:end].strip()
+        if short_candidate:
+            short_name = short_candidate
+
+        name_candidate = normalized[:start].strip()
+        if name_candidate:
+            normalized = name_candidate
+
+    return normalized, short_name
 
 
 def sanitize_team_details(team_details):
@@ -156,20 +277,20 @@ def extract_team_details(match):
                 continue
 
             team_details.append({
-                "name": team.get("name") or team.get("fullName"),
-                "short_name": team.get("shortname") or team.get("shortName"),
+                "name": clean_text(team.get("name")) or clean_text(team.get("fullName")),
+                "short_name": clean_text(team.get("shortname")) or clean_text(team.get("shortName")),
                 "logo": team.get("img") or team.get("image")
             })
 
     if not team_details:
         for name_key, image_key in (("t1", "t1img"), ("t2", "t2img")):
-            name = match.get(name_key)
-            if not name:
+            team_name, short_name = split_team_name(match.get(name_key))
+            if not team_name and not short_name:
                 continue
 
             team_details.append({
-                "name": name,
-                "short_name": None,
+                "name": team_name,
+                "short_name": short_name,
                 "logo": match.get(image_key)
             })
 
@@ -177,53 +298,185 @@ def extract_team_details(match):
         teams = match.get("teams")
         if isinstance(teams, list):
             for team_name in teams:
+                normalized_name, normalized_short = split_team_name(team_name)
                 team_details.append({
-                    "name": team_name,
-                    "short_name": None,
+                    "name": normalized_name or clean_text(team_name),
+                    "short_name": normalized_short,
                     "logo": None
                 })
 
     return sanitize_team_details(team_details)
 
 
-def stringify_score(score):
-    if not score:
+def format_innings_score(innings):
+    if not isinstance(innings, dict):
         return None
 
-    if isinstance(score, str):
-        return score
+    innings_name = clean_text(
+        innings.get("inning")
+        or innings.get("name")
+        or innings.get("team")
+    )
+    runs = first_non_none(innings.get("r"), innings.get("runs"))
+    wickets = first_non_none(innings.get("w"), innings.get("wickets"))
+    overs = first_non_none(innings.get("o"), innings.get("overs"))
 
-    if isinstance(score, list):
-        parts = []
+    section = innings_name or ""
 
-        for innings in score:
-            if not isinstance(innings, dict):
-                continue
+    if runs is not None and str(runs).strip():
+        score_line = str(runs).strip()
+        if wickets is not None and str(wickets).strip():
+            score_line += f"/{str(wickets).strip()}"
 
-            innings_name = innings.get("inning") or innings.get("name") or ""
-            runs = first_non_none(innings.get("r"), innings.get("runs"))
-            wickets = first_non_none(innings.get("w"), innings.get("wickets"))
-            overs = first_non_none(innings.get("o"), innings.get("overs"))
+        section = f"{section} {score_line}".strip()
 
-            section = innings_name.strip()
+    if overs is not None and str(overs).strip():
+        section = f"{section} ({str(overs).strip()} ov)".strip()
 
-            if runs is not None:
-                score_line = str(runs)
-                if wickets is not None:
-                    score_line += f"/{wickets}"
+    return clean_text(section)
 
-                section = f"{section} {score_line}".strip()
 
-            if overs is not None:
-                section = f"{section} ({overs} ov)".strip()
+def score_lines_from_team_totals(match, team_details):
+    t1_score = clean_text(match.get("t1s"))
+    t2_score = clean_text(match.get("t2s"))
 
-            if section:
-                parts.append(section)
+    if not t1_score and not t2_score:
+        return []
 
-        if parts:
-            return " | ".join(parts)
+    lines = []
+    team_one = team_details[0] if len(team_details) > 0 else {}
+    team_two = team_details[1] if len(team_details) > 1 else {}
 
-    return str(score)
+    team_one_name = clean_text(team_one.get("short_name")) or clean_text(team_one.get("name")) or "Team 1"
+    team_two_name = clean_text(team_two.get("short_name")) or clean_text(team_two.get("name")) or "Team 2"
+
+    if t1_score:
+        lines.append(f"{team_one_name}: {t1_score}")
+
+    if t2_score:
+        lines.append(f"{team_two_name}: {t2_score}")
+
+    return lines
+
+
+def extract_score_lines(match, team_details):
+    raw_score = match.get("score")
+
+    if isinstance(raw_score, str):
+        cleaned = clean_text(raw_score)
+        if cleaned:
+            return [cleaned]
+
+    if isinstance(raw_score, list):
+        innings_lines = []
+        for innings in raw_score:
+            line = format_innings_score(innings)
+            if line:
+                innings_lines.append(line)
+
+        if innings_lines:
+            return innings_lines
+
+    if isinstance(raw_score, dict):
+        line = format_innings_score(raw_score)
+        if line:
+            return [line]
+
+    return score_lines_from_team_totals(match, team_details)
+
+
+def stringify_score(score_lines):
+    if not score_lines:
+        return None
+
+    return " | ".join(score_lines)
+
+
+def extract_match_name(match):
+    direct_name = clean_text(match.get("name")) or clean_text(match.get("matchName")) or clean_text(match.get("title"))
+    if direct_name:
+        return direct_name
+
+    team_one_name, _ = split_team_name(match.get("t1"))
+    team_two_name, _ = split_team_name(match.get("t2"))
+
+    if team_one_name and team_two_name:
+        return f"{team_one_name} vs {team_two_name}"
+
+    return None
+
+
+def extract_match_state(match):
+    state = clean_text(str(match.get("ms") or ""))
+    if state:
+        return state.lower()
+
+    if match.get("matchEnded") is True:
+        return "completed"
+
+    if match.get("matchStarted") is True:
+        return "live"
+
+    return None
+
+
+def extract_series_name(match):
+    series = match.get("series")
+    if isinstance(series, dict):
+        return clean_text(series.get("name") or series.get("seriesName") or series.get("title"))
+
+    return clean_text(series)
+
+
+def extract_venue(match):
+    direct_keys = ("venue", "ground", "location", "stadium")
+    for key in direct_keys:
+        value = clean_text(match.get(key))
+        if value:
+            return value
+
+    venue_info = match.get("venueInfo")
+    if isinstance(venue_info, dict):
+        for key in ("venue", "name", "ground", "stadium"):
+            value = clean_text(venue_info.get(key))
+            if value:
+                return value
+
+        city = clean_text(venue_info.get("city"))
+        country = clean_text(venue_info.get("country"))
+        if city and country:
+            return f"{city}, {country}"
+        if city:
+            return city
+
+    return None
+
+
+def normalize_match_date(match):
+    for key in ("dateTimeGMT", "dateTime", "date"):
+        raw_value = match.get(key)
+        parsed = parse_match_datetime(raw_value)
+        if parsed != datetime.min.replace(tzinfo=timezone.utc):
+            return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    return None
+
+
+def infer_match_timezone(match, venue, series_name):
+    source_parts = [
+        venue,
+        series_name,
+        match.get("name"),
+        match.get("t1"),
+        match.get("t2")
+    ]
+    source_text = " ".join([part for part in source_parts if isinstance(part, str)]).lower()
+
+    for hint, timezone_name in TIMEZONE_HINTS:
+        if hint in source_text:
+            return timezone_name
+
+    return "UTC"
 
 
 def extract_teams(match):
@@ -233,18 +486,25 @@ def extract_teams(match):
 
 
 def simplify_match(match):
+    team_details = extract_team_details(match)
+    score_lines = extract_score_lines(match, team_details)
+    venue = extract_venue(match)
+    series_name = extract_series_name(match)
+
     return {
         "id": match.get("id") or match.get("unique_id"),
-        "name": match.get("name") or match.get("matchName") or match.get("title"),
-        "match_type": match.get("matchType") or match.get("type"),
-        "status": match.get("status"),
-        "venue": match.get("venue"),
-        "date": match.get("date") or match.get("dateTimeGMT") or match.get("dateTime"),
+        "name": extract_match_name(match),
+        "match_type": clean_text(match.get("matchType")) or clean_text(match.get("type")),
+        "status": clean_text(match.get("status")),
+        "venue": venue,
+        "venue_timezone": infer_match_timezone(match, venue, series_name),
+        "date": normalize_match_date(match),
         "teams": extract_teams(match),
-        "team_details": extract_team_details(match),
-        "score": stringify_score(match.get("score")),
-        "state": str(match.get("ms") or "").lower() or None,
-        "series": match.get("series")
+        "team_details": team_details,
+        "score": stringify_score(score_lines),
+        "score_lines": score_lines,
+        "state": extract_match_state(match),
+        "series": series_name
     }
 
 
@@ -371,6 +631,26 @@ def write_cached_home_payload(payload):
     home_matches_cache["timestamp"] = time.time()
 
 
+def read_cached_match_info(match_id):
+    cached = match_info_cache.get(match_id)
+    if not cached:
+        return None
+
+    age_seconds = int(time.time() - cached.get("timestamp", 0.0))
+    if age_seconds > MATCH_INFO_CACHE_TTL_SECONDS:
+        match_info_cache.pop(match_id, None)
+        return None
+
+    return deepcopy(cached.get("payload"))
+
+
+def write_cached_match_info(match_id, payload):
+    match_info_cache[match_id] = {
+        "timestamp": time.time(),
+        "payload": deepcopy(payload)
+    }
+
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -476,6 +756,61 @@ def matches():
 
         return jsonify({
             "error": "Failed to fetch matches from cricket API",
+            "details": str(e)
+        }), 500
+    except Exception as e:
+        return jsonify({
+            "error": "Unexpected error",
+            "details": str(e)
+        }), 500
+
+
+@app.route("/match-details/<match_id>")
+def match_details(match_id):
+    if not API_KEY:
+        return jsonify({
+            "error": "CRICKET_API_KEY not found in environment"
+        }), 500
+
+    if not match_id:
+        return jsonify({
+            "error": "Match id is required"
+        }), 400
+
+    cached_payload = read_cached_match_info(match_id)
+    if cached_payload:
+        return jsonify({
+            "match": cached_payload,
+            "served_from_cache": True
+        })
+
+    try:
+        match_data, warning = fetch_match_info(match_id)
+
+        if warning:
+            return jsonify({
+                "error": "Failed to fetch match details from cricket API",
+                "details": warning
+            }), 503
+
+        if not isinstance(match_data, dict):
+            return jsonify({
+                "error": "Match details are unavailable for this id"
+            }), 404
+
+        simplified = simplify_match(match_data)
+        if not simplified.get("id"):
+            simplified["id"] = match_id
+
+        write_cached_match_info(match_id, simplified)
+
+        return jsonify({
+            "match": simplified,
+            "served_from_cache": False
+        })
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "error": "Failed to fetch match details from cricket API",
             "details": str(e)
         }), 500
     except Exception as e:

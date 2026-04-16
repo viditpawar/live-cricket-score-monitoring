@@ -108,6 +108,84 @@ def first_non_none(*values):
     return None
 
 
+def sanitize_team_details(team_details):
+    normalized = []
+    seen = set()
+
+    for team in team_details:
+        if not isinstance(team, dict):
+            continue
+
+        name = team.get("name")
+        short_name = team.get("short_name")
+        logo = team.get("logo")
+
+        if isinstance(name, str):
+            name = name.strip()
+        if isinstance(short_name, str):
+            short_name = short_name.strip()
+        if isinstance(logo, str):
+            logo = logo.strip()
+
+        if not name and not short_name and not logo:
+            continue
+
+        dedupe_key = (name or short_name or "").lower()
+        if dedupe_key and dedupe_key in seen:
+            continue
+
+        if dedupe_key:
+            seen.add(dedupe_key)
+
+        normalized.append({
+            "name": name,
+            "short_name": short_name,
+            "logo": logo
+        })
+
+    return normalized
+
+
+def extract_team_details(match):
+    team_details = []
+    team_info = match.get("teamInfo")
+
+    if isinstance(team_info, list):
+        for team in team_info:
+            if not isinstance(team, dict):
+                continue
+
+            team_details.append({
+                "name": team.get("name") or team.get("fullName"),
+                "short_name": team.get("shortname") or team.get("shortName"),
+                "logo": team.get("img") or team.get("image")
+            })
+
+    if not team_details:
+        for name_key, image_key in (("t1", "t1img"), ("t2", "t2img")):
+            name = match.get(name_key)
+            if not name:
+                continue
+
+            team_details.append({
+                "name": name,
+                "short_name": None,
+                "logo": match.get(image_key)
+            })
+
+    if not team_details:
+        teams = match.get("teams")
+        if isinstance(teams, list):
+            for team_name in teams:
+                team_details.append({
+                    "name": team_name,
+                    "short_name": None,
+                    "logo": None
+                })
+
+    return sanitize_team_details(team_details)
+
+
 def stringify_score(score):
     if not score:
         return None
@@ -149,29 +227,9 @@ def stringify_score(score):
 
 
 def extract_teams(match):
-    teams = match.get("teams")
-
-    if isinstance(teams, list):
-        return teams
-
-    t1 = match.get("t1")
-    t2 = match.get("t2")
-    if t1 and t2:
-        return [t1, t2]
-
-    team_info = match.get("teamInfo")
-    if isinstance(team_info, list):
-        parsed_names = []
-        for team in team_info:
-            if isinstance(team, dict):
-                name = team.get("name")
-                if name:
-                    parsed_names.append(name)
-
-        if parsed_names:
-            return parsed_names
-
-    return []
+    team_details = extract_team_details(match)
+    team_names = [team.get("name") for team in team_details if team.get("name")]
+    return team_names
 
 
 def simplify_match(match):
@@ -183,8 +241,10 @@ def simplify_match(match):
         "venue": match.get("venue"),
         "date": match.get("date") or match.get("dateTimeGMT") or match.get("dateTime"),
         "teams": extract_teams(match),
+        "team_details": extract_team_details(match),
         "score": stringify_score(match.get("score")),
-        "state": str(match.get("ms") or "").lower() or None
+        "state": str(match.get("ms") or "").lower() or None,
+        "series": match.get("series")
     }
 
 

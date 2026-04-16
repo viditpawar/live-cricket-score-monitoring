@@ -142,9 +142,50 @@
 
         .hero-actions {
             display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+            min-width: 240px;
+        }
+
+        .action-row {
+            display: flex;
             gap: 10px;
             flex-wrap: wrap;
             justify-content: flex-end;
+        }
+
+        .theme-switch {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+            padding: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.24);
+        }
+
+        .theme-btn {
+            border: 1px solid transparent;
+            background: transparent;
+            color: #f8fbff;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+        }
+
+        .theme-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .theme-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.65);
         }
 
         .btn {
@@ -337,8 +378,20 @@
             box-shadow: 0 8px 18px rgba(20, 50, 82, 0.07);
             position: relative;
             overflow: hidden;
+            cursor: pointer;
             animation: cardIn 520ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
             animation-delay: var(--delay, 0ms);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .match-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 22px rgba(20, 50, 82, 0.1);
+        }
+
+        .match-card:focus-visible {
+            outline: 3px solid #6aaeff;
+            outline-offset: 2px;
         }
 
         .match-card::before {
@@ -404,6 +457,70 @@
             color: #7b4d11;
             background: #fff0da;
             border: 1px solid #ffd9a9;
+        }
+
+        .team-strip {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .team-pill {
+            background: #edf3fb;
+            border: 1px solid #d4e1f2;
+            border-radius: 10px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 58px;
+        }
+
+        .team-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: #ffffff;
+            flex: 0 0 auto;
+        }
+
+        .team-logo-fallback {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            background: #dce9f8;
+            color: #1d4d83;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            flex: 0 0 auto;
+        }
+
+        .team-text {
+            min-width: 0;
+        }
+
+        .team-name {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .team-flag {
+            display: block;
+            font-size: 12px;
+            color: var(--text-soft);
+            margin-top: 2px;
+            letter-spacing: 0.03em;
         }
 
         .status {
@@ -487,6 +604,381 @@
             display: block;
         }
 
+        .match-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 220ms ease;
+        }
+
+        .match-modal.open {
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            border: 0;
+            background: rgba(7, 22, 39, 0.56);
+            padding: 0;
+            cursor: pointer;
+        }
+
+        .match-drawer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: min(540px, 96vw);
+            background: var(--panel);
+            border-left: 1px solid #d5e2f1;
+            box-shadow: -12px 0 28px rgba(9, 28, 50, 0.35);
+            transform: translateX(100%);
+            transition: transform 240ms ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .match-modal.open .match-drawer {
+            transform: translateX(0);
+        }
+
+        .drawer-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 16px;
+            border-bottom: 1px solid #d6e1ee;
+        }
+
+        .drawer-title {
+            margin: 0;
+            font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+            color: var(--text);
+            font-size: 1.15rem;
+            line-height: 1.25;
+        }
+
+        .drawer-close {
+            border: 1px solid #d6e1ee;
+            background: transparent;
+            color: var(--text-soft);
+            border-radius: 10px;
+            width: 34px;
+            height: 34px;
+            font-size: 17px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .drawer-close:hover {
+            transform: translateY(-1px);
+        }
+
+        .drawer-body {
+            padding: 14px 16px 24px;
+            overflow: auto;
+            color: var(--text-soft);
+        }
+
+        .drawer-pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .drawer-pill {
+            border: 1px solid #d5e1ef;
+            background: #edf3fa;
+            color: #415b7a;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .drawer-score {
+            background: #edf3fb;
+            border: 1px solid #d4e1f2;
+            color: #1b3a5f;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin: 0 0 12px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .drawer-score ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .drawer-score li {
+            margin: 4px 0;
+        }
+
+        .drawer-team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .drawer-team-card {
+            background: var(--panel);
+            border: 1px solid #d6e1ee;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .drawer-team-logo,
+        .drawer-team-logo-fallback {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            flex: 0 0 auto;
+        }
+
+        .drawer-team-logo {
+            object-fit: cover;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: #ffffff;
+        }
+
+        .drawer-team-logo-fallback {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            background: #dce9f8;
+            color: #1d4d83;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .drawer-team-name {
+            display: block;
+            color: var(--text);
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .drawer-team-flag {
+            display: block;
+            font-size: 12px;
+            color: var(--text-soft);
+            margin-top: 2px;
+        }
+
+        .drawer-details {
+            display: grid;
+            gap: 8px;
+        }
+
+        .drawer-detail-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            border-top: 1px dashed #dce7f4;
+            padding-top: 8px;
+            font-size: 14px;
+        }
+
+        .drawer-detail-line strong {
+            color: var(--text);
+            text-align: right;
+            max-width: 65%;
+        }
+
+        body[data-theme="minimal"] .hero {
+            background: #ffffff;
+            border-color: #d7dde3;
+            color: #1f2b39;
+            box-shadow: 0 8px 24px rgba(33, 47, 63, 0.08);
+        }
+
+        body[data-theme="minimal"] .hero-subtitle {
+            color: #61707f;
+        }
+
+        body[data-theme="minimal"] .brand-mark {
+            background: rgba(31, 43, 57, 0.06);
+            border-color: rgba(31, 43, 57, 0.14);
+            color: #1f2b39;
+        }
+
+        body[data-theme="minimal"] .theme-switch {
+            background: rgba(31, 43, 57, 0.06);
+            border-color: rgba(31, 43, 57, 0.14);
+        }
+
+        body[data-theme="minimal"] .theme-btn {
+            color: #1f2b39;
+        }
+
+        body[data-theme="minimal"] .theme-btn.active {
+            background: rgba(31, 43, 57, 0.08);
+            border-color: rgba(31, 43, 57, 0.35);
+        }
+
+        body[data-theme="minimal"] .btn-muted {
+            background: rgba(31, 43, 57, 0.08);
+            border-color: rgba(31, 43, 57, 0.2);
+            color: #223245;
+        }
+
+        body[data-theme="minimal"] .stat-chip {
+            background: #f8fafc;
+            border-color: #d7dde3;
+        }
+
+        body[data-theme="minimal"] .stat-label {
+            color: #6f7f90;
+        }
+
+        body[data-theme="minimal"] .stat-value {
+            color: #1f2b39;
+        }
+
+        body[data-theme="minimal"]::before {
+            display: none;
+        }
+
+        body[data-theme="dark-stadium"] {
+            color: #d8e6f5;
+        }
+
+        body[data-theme="dark-stadium"] .hero {
+            background: linear-gradient(135deg, #081726 0%, #0e2841 55%, #133656 100%);
+            border-color: #2a4764;
+            color: #eaf4ff;
+            box-shadow: 0 22px 48px rgba(1, 9, 18, 0.56);
+        }
+
+        body[data-theme="dark-stadium"] .hero-subtitle {
+            color: #b7d0ea;
+        }
+
+        body[data-theme="dark-stadium"] .stat-chip {
+            background: rgba(7, 28, 48, 0.55);
+            border-color: rgba(80, 125, 167, 0.35);
+        }
+
+        body[data-theme="dark-stadium"] .stat-label {
+            color: #95b1cb;
+        }
+
+        body[data-theme="dark-stadium"] .stat-value {
+            color: #ecf6ff;
+        }
+
+        body[data-theme="dark-stadium"] .board {
+            background: rgba(8, 24, 40, 0.82);
+            border-color: rgba(65, 109, 146, 0.45);
+            box-shadow: 0 18px 34px rgba(1, 11, 20, 0.52);
+        }
+
+        body[data-theme="dark-stadium"] .search-wrap {
+            background: #0c2237;
+            border-color: #355a7c;
+        }
+
+        body[data-theme="dark-stadium"] .search-wrap svg {
+            color: #8fb0ce;
+        }
+
+        body[data-theme="dark-stadium"] .search-wrap input {
+            color: #d8e6f5;
+        }
+
+        body[data-theme="dark-stadium"] .meta .pill,
+        body[data-theme="dark-stadium"] .drawer-pill {
+            background: #0e2a45;
+            border-color: #35597a;
+            color: #b0c8df;
+        }
+
+        body[data-theme="dark-stadium"] .tab-btn {
+            background: #0e2b47;
+            border-color: #35597a;
+            color: #a5c0d8;
+        }
+
+        body[data-theme="dark-stadium"] .match-card {
+            background: #10283f;
+            border-color: #335675;
+            box-shadow: 0 8px 18px rgba(2, 12, 21, 0.44);
+        }
+
+        body[data-theme="dark-stadium"] .match-title,
+        body[data-theme="dark-stadium"] .team-name,
+        body[data-theme="dark-stadium"] .meta-line strong,
+        body[data-theme="dark-stadium"] .drawer-title,
+        body[data-theme="dark-stadium"] .drawer-team-name,
+        body[data-theme="dark-stadium"] .drawer-detail-line strong {
+            color: #e3f0fd;
+        }
+
+        body[data-theme="dark-stadium"] .status,
+        body[data-theme="dark-stadium"] .team-flag,
+        body[data-theme="dark-stadium"] .meta-line,
+        body[data-theme="dark-stadium"] .drawer-team-flag,
+        body[data-theme="dark-stadium"] .drawer-body,
+        body[data-theme="dark-stadium"] .drawer-detail-line {
+            color: #9cb6cf;
+        }
+
+        body[data-theme="dark-stadium"] .team-pill,
+        body[data-theme="dark-stadium"] .score,
+        body[data-theme="dark-stadium"] .drawer-score {
+            background: #0f314f;
+            border-color: #3c6487;
+            color: #d6ebff;
+        }
+
+        body[data-theme="dark-stadium"] .meta-line,
+        body[data-theme="dark-stadium"] .drawer-detail-line {
+            border-color: #2b4965;
+        }
+
+        body[data-theme="dark-stadium"] .theme-btn {
+            color: #e9f5ff;
+        }
+
+        body[data-theme="dark-stadium"] .theme-btn.active {
+            background: rgba(201, 224, 246, 0.15);
+            border-color: rgba(201, 224, 246, 0.65);
+        }
+
+        body[data-theme="dark-stadium"] .modal-backdrop {
+            background: rgba(1, 7, 14, 0.72);
+        }
+
+        body[data-theme="dark-stadium"] .match-drawer {
+            background: #0b2236;
+            border-color: #315270;
+            box-shadow: -12px 0 28px rgba(2, 11, 19, 0.6);
+        }
+
+        body[data-theme="dark-stadium"] .drawer-head,
+        body[data-theme="dark-stadium"] .drawer-team-card {
+            border-color: #315270;
+        }
+
+        body[data-theme="dark-stadium"] .drawer-close {
+            border-color: #315270;
+            color: #9bb4cd;
+        }
+
         @media (max-width: 980px) {
             .status-strip {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -505,6 +997,11 @@
             }
 
             .hero-actions {
+                align-items: flex-start;
+                min-width: 0;
+            }
+
+            .action-row {
                 justify-content: flex-start;
             }
         }
@@ -526,6 +1023,22 @@
 
             .matches-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .match-drawer {
+                width: 100%;
+                border-left: 0;
+                border-top: 1px solid #d5e2f1;
+                top: auto;
+                bottom: 0;
+                height: min(86vh, 700px);
+                border-top-left-radius: 16px;
+                border-top-right-radius: 16px;
+                transform: translateY(100%);
+            }
+
+            .match-modal.open .match-drawer {
+                transform: translateY(0);
             }
         }
 
@@ -564,7 +1077,7 @@
         }
     </style>
 </head>
-<body>
+<body data-theme="broadcast">
     <main class="app-shell">
         <section class="hero">
             <div class="hero-top">
@@ -580,8 +1093,15 @@
                     </p>
                 </div>
                 <div class="hero-actions">
-                    <button id="refresh-btn" class="btn btn-primary">Refresh Now</button>
-                    <button id="clear-filter-btn" class="btn btn-muted">Clear Search</button>
+                    <div class="action-row">
+                        <button id="refresh-btn" class="btn btn-primary" type="button">Refresh Now</button>
+                        <button id="clear-filter-btn" class="btn btn-muted" type="button">Clear Search</button>
+                    </div>
+                    <div class="theme-switch" role="group" aria-label="Choose theme">
+                        <button class="theme-btn active" data-theme="broadcast" type="button">Broadcast</button>
+                        <button class="theme-btn" data-theme="minimal" type="button">Minimal</button>
+                        <button class="theme-btn" data-theme="dark-stadium" type="button">Dark Stadium</button>
+                    </div>
                 </div>
             </div>
 
@@ -634,7 +1154,66 @@
         </section>
     </main>
 
+    <div id="match-modal" class="match-modal" aria-hidden="true">
+        <button class="modal-backdrop" type="button" data-close-modal aria-label="Close match details"></button>
+        <aside class="match-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+            <div class="drawer-head">
+                <h2 class="drawer-title" id="drawer-title">Match Details</h2>
+                <button id="drawer-close" class="drawer-close" type="button" aria-label="Close">x</button>
+            </div>
+            <div id="drawer-body" class="drawer-body"></div>
+        </aside>
+    </div>
+
     <script>
+        const TEAM_COUNTRY_HINTS = {
+            "india": "IN",
+            "australia": "AU",
+            "england": "GB",
+            "pakistan": "PK",
+            "new zealand": "NZ",
+            "south africa": "ZA",
+            "sri lanka": "LK",
+            "bangladesh": "BD",
+            "afghanistan": "AF",
+            "ireland": "IE",
+            "zimbabwe": "ZW",
+            "netherlands": "NL",
+            "scotland": "GB",
+            "uae": "AE",
+            "nepal": "NP",
+            "namibia": "NA",
+            "usa": "US",
+            "canada": "CA",
+            "west indies": "JM",
+            "mumbai": "IN",
+            "chennai": "IN",
+            "kolkata": "IN",
+            "delhi": "IN",
+            "punjab": "IN",
+            "rajasthan": "IN",
+            "hyderabad": "IN",
+            "gujarat": "IN",
+            "lucknow": "IN",
+            "bangalore": "IN",
+            "brisbane": "AU",
+            "sydney": "AU",
+            "melbourne": "AU",
+            "adelaide": "AU",
+            "hobart": "AU",
+            "perth": "AU",
+            "karachi": "PK",
+            "lahore": "PK",
+            "islamabad": "PK",
+            "peshawar": "PK",
+            "quetta": "PK",
+            "multan": "PK",
+            "county": "GB"
+        };
+
+        const THEME_STORAGE_KEY = "cricpulse_theme";
+        const AVAILABLE_THEMES = ["broadcast", "minimal", "dark-stadium"];
+
         const state = {
             allMatches: [],
             live: [],
@@ -642,13 +1221,21 @@
             upcoming: [],
             activeTab: "all",
             search: "",
-            lastUpdated: null
+            lastUpdated: null,
+            matchLookup: {},
+            activeMatchKey: null,
+            theme: "broadcast"
         };
 
         const tabs = Array.from(document.querySelectorAll(".tab-btn"));
+        const themeButtons = Array.from(document.querySelectorAll(".theme-btn"));
         const searchInput = document.getElementById("search-input");
         const refreshButton = document.getElementById("refresh-btn");
         const clearFilterButton = document.getElementById("clear-filter-btn");
+        const modal = document.getElementById("match-modal");
+        const drawerBody = document.getElementById("drawer-body");
+        const drawerClose = document.getElementById("drawer-close");
+        const matchesGrid = document.getElementById("matches-grid");
 
         function toSafeText(value, fallback = "N/A") {
             if (value === null || value === undefined || value === "") {
@@ -665,6 +1252,59 @@
                 .replace(/>/g, "&gt;")
                 .replace(/\"/g, "&quot;")
                 .replace(/'/g, "&#39;");
+        }
+
+        function safeImageUrl(url) {
+            if (!url || typeof url !== "string") {
+                return "";
+            }
+
+            const trimmed = url.trim();
+            if (/^https?:\/\//i.test(trimmed)) {
+                return trimmed;
+            }
+
+            return "";
+        }
+
+        function buildInitials(name) {
+            const raw = toSafeText(name, "").trim();
+            if (!raw) {
+                return "TM";
+            }
+
+            const words = raw.split(/\s+/).filter(Boolean);
+            if (words.length === 1) {
+                return words[0].slice(0, 2).toUpperCase();
+            }
+
+            return (words[0][0] + words[1][0]).toUpperCase();
+        }
+
+        function inferCountryCode(teamName) {
+            const normalized = toSafeText(teamName, "").toLowerCase();
+            for (const hint of Object.keys(TEAM_COUNTRY_HINTS)) {
+                if (normalized.includes(hint)) {
+                    return TEAM_COUNTRY_HINTS[hint];
+                }
+            }
+
+            return "";
+        }
+
+        function flagFromCountryCode(code) {
+            const upper = toSafeText(code, "").toUpperCase();
+            if (!/^[A-Z]{2}$/.test(upper)) {
+                return "N/A";
+            }
+
+            const first = 127397 + upper.charCodeAt(0);
+            const second = 127397 + upper.charCodeAt(1);
+            return String.fromCodePoint(first, second);
+        }
+
+        function getFlagForTeam(teamName) {
+            return flagFromCountryCode(inferCountryCode(teamName));
         }
 
         function normalizeDate(value) {
@@ -709,23 +1349,62 @@
             return "upcoming";
         }
 
-        function buildFallbackBuckets(matches) {
-            const live = [];
-            const recent = [];
-            const upcoming = [];
+        function buildMatchKey(match, sourceName, index) {
+            const id = toSafeText(match.id, "").trim();
+            if (id) {
+                return "id:" + id;
+            }
 
-            matches.forEach((match) => {
-                const tag = matchTypeTag(match);
-                if (tag === "live") {
-                    live.push(match);
-                } else if (tag === "recent") {
-                    recent.push(match);
-                } else {
-                    upcoming.push(match);
-                }
+            return [
+                sourceName,
+                toSafeText(match.name, "match"),
+                toSafeText(match.date, ""),
+                index
+            ].join("|");
+        }
+
+        function normalizeTeamDetails(match) {
+            const details = Array.isArray(match.team_details) ? match.team_details : [];
+            const normalized = details
+                .filter((team) => team && (team.name || team.short_name || team.logo))
+                .map((team) => ({
+                    name: toSafeText(team.name, "Team"),
+                    shortName: toSafeText(team.short_name, ""),
+                    logo: safeImageUrl(team.logo)
+                }));
+
+            if (normalized.length > 0) {
+                return normalized.slice(0, 2);
+            }
+
+            if (Array.isArray(match.teams) && match.teams.length > 0) {
+                return match.teams.slice(0, 2).map((teamName) => ({
+                    name: toSafeText(teamName, "Team"),
+                    shortName: "",
+                    logo: ""
+                }));
+            }
+
+            return [
+                { name: "Team A", shortName: "", logo: "" },
+                { name: "Team B", shortName: "", logo: "" }
+            ];
+        }
+
+        function prepareMatches(collection, sourceName) {
+            if (!Array.isArray(collection)) {
+                return [];
+            }
+
+            return collection.map((item, index) => {
+                const match = item || {};
+                return {
+                    ...match,
+                    __key: buildMatchKey(match, sourceName, index),
+                    __tag: matchTypeTag(match),
+                    team_details: normalizeTeamDetails(match)
+                };
             });
-
-            return { live, recent, upcoming };
         }
 
         function normalizePayload(data) {
@@ -735,25 +1414,35 @@
             let upcoming = Array.isArray(data.upcoming_matches) ? data.upcoming_matches : [];
 
             if (live.length === 0 && recent.length === 0 && upcoming.length === 0 && sourceMatches.length > 0) {
-                const fallback = buildFallbackBuckets(sourceMatches);
-                live = fallback.live;
-                recent = fallback.recent;
-                upcoming = fallback.upcoming;
+                sourceMatches.forEach((match) => {
+                    const tag = matchTypeTag(match);
+                    if (tag === "live") {
+                        live.push(match);
+                    } else if (tag === "recent") {
+                        recent.push(match);
+                    } else {
+                        upcoming.push(match);
+                    }
+                });
             }
 
-            const allMatches = [...live, ...recent, ...upcoming];
+            const preparedLive = prepareMatches(live, "live");
+            const preparedRecent = prepareMatches(recent, "recent");
+            const preparedUpcoming = prepareMatches(upcoming, "upcoming");
+            const allMatches = [...preparedLive, ...preparedRecent, ...preparedUpcoming];
+
             return {
                 allMatches,
-                live,
-                recent,
-                upcoming,
+                live: preparedLive,
+                recent: preparedRecent,
+                upcoming: preparedUpcoming,
                 servedFromCache: Boolean(data.served_from_cache),
                 warning: data.warning || "",
                 cacheAge: data.cache_age_seconds,
                 counts: {
-                    live: data.live_count ?? live.length,
-                    recent: data.recent_count ?? recent.length,
-                    upcoming: data.upcoming_count ?? upcoming.length,
+                    live: data.live_count ?? preparedLive.length,
+                    recent: data.recent_count ?? preparedRecent.length,
+                    upcoming: data.upcoming_count ?? preparedUpcoming.length,
                     total: data.total_matches ?? allMatches.length
                 }
             };
@@ -825,11 +1514,17 @@
             }
 
             return collection.filter((match) => {
+                const teamText = Array.isArray(match.team_details)
+                    ? match.team_details.map((team) => [team.name, team.shortName].join(" ")).join(" ")
+                    : "";
+
                 const haystack = [
                     toSafeText(match.name, ""),
                     toSafeText(match.status, ""),
                     toSafeText(match.venue, ""),
+                    toSafeText(match.series, ""),
                     Array.isArray(match.teams) ? match.teams.join(" ") : "",
+                    teamText,
                     toSafeText(match.match_type, "")
                 ].join(" ").toLowerCase();
 
@@ -858,8 +1553,7 @@
         }
 
         function renderEmptyState() {
-            const grid = document.getElementById("matches-grid");
-            grid.innerHTML = `
+            matchesGrid.innerHTML = `
                 <div class="empty-state">
                     <div>
                         <h3>${emptyTitleForTab()}</h3>
@@ -869,52 +1563,74 @@
             `;
         }
 
+        function renderTeamAvatar(team, mode) {
+            const logoUrl = safeImageUrl(team.logo);
+            const initials = escapeHtml(buildInitials(team.shortName || team.name));
+
+            if (logoUrl) {
+                const cls = mode === "drawer" ? "drawer-team-logo" : "team-logo";
+                return `<img class="${cls}" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(toSafeText(team.name, "Team"))} logo" loading="lazy">`;
+            }
+
+            const cls = mode === "drawer" ? "drawer-team-logo-fallback" : "team-logo-fallback";
+            return `<span class="${cls}">${initials}</span>`;
+        }
+
+        function renderTeamPill(team) {
+            const flag = escapeHtml(getFlagForTeam(team.name));
+            return `
+                <div class="team-pill">
+                    ${renderTeamAvatar(team, "card")}
+                    <div class="team-text">
+                        <span class="team-name">${escapeHtml(toSafeText(team.name, "Team"))}</span>
+                        <span class="team-flag">${flag}</span>
+                    </div>
+                </div>
+            `;
+        }
+
         function createCard(match, index) {
-            const tag = matchTypeTag(match);
+            const tag = match.__tag || matchTypeTag(match);
             const badgeText = tag === "live" ? "Live" : tag === "recent" ? "Result" : "Upcoming";
-            const teams = Array.isArray(match.teams) && match.teams.length > 0
-                ? match.teams.join(" vs ")
-                : toSafeText(match.name, "Match details pending");
             const scoreText = toSafeText(match.score, "Score will appear when available");
             const scoreClass = match.score ? "score" : "score empty";
-            const safeTeams = escapeHtml(teams);
-            const safeBadge = escapeHtml(badgeText);
-            const safeStatus = escapeHtml(toSafeText(match.status, "Status unavailable"));
-            const safeScore = escapeHtml(scoreText);
-            const safeName = escapeHtml(toSafeText(match.name));
-            const safeFormat = escapeHtml(toSafeText(match.match_type));
-            const safeVenue = escapeHtml(toSafeText(match.venue));
-            const safeDate = escapeHtml(normalizeDate(match.date));
+            const teamsMarkup = (match.team_details || []).map(renderTeamPill).join("");
 
             return `
-                <article class="match-card ${tag}" style="--delay:${index * 55}ms">
+                <article class="match-card ${tag}" style="--delay:${index * 55}ms" tabindex="0" role="button" data-match-key="${escapeHtml(match.__key)}" aria-label="Open details for ${escapeHtml(toSafeText(match.name, "match"))}">
                     <div class="card-top">
-                        <h3 class="teams">${safeTeams}</h3>
-                        <span class="badge ${tag}">${safeBadge}</span>
+                        <h3 class="match-title">${escapeHtml(toSafeText(match.name, "Match details pending"))}</h3>
+                        <span class="badge ${tag}">${escapeHtml(badgeText)}</span>
                     </div>
-                    <p class="status">${safeStatus}</p>
-                    <p class="${scoreClass}">${safeScore}</p>
+                    <div class="team-strip">${teamsMarkup}</div>
+                    <p class="status">${escapeHtml(toSafeText(match.status, "Status unavailable"))}</p>
+                    <p class="${scoreClass}">${escapeHtml(scoreText)}</p>
                     <div class="meta-grid">
-                        <div class="meta-line"><span>Match</span><strong>${safeName}</strong></div>
-                        <div class="meta-line"><span>Format</span><strong>${safeFormat}</strong></div>
-                        <div class="meta-line"><span>Venue</span><strong>${safeVenue}</strong></div>
-                        <div class="meta-line"><span>Date</span><strong>${safeDate}</strong></div>
+                        <div class="meta-line"><span>Format</span><strong>${escapeHtml(toSafeText(match.match_type))}</strong></div>
+                        <div class="meta-line"><span>Venue</span><strong>${escapeHtml(toSafeText(match.venue))}</strong></div>
+                        <div class="meta-line"><span>Date</span><strong>${escapeHtml(normalizeDate(match.date))}</strong></div>
                     </div>
                 </article>
             `;
         }
 
+        function indexMatches(matches) {
+            state.matchLookup = {};
+            matches.forEach((match) => {
+                state.matchLookup[match.__key] = match;
+            });
+        }
+
         function renderMatches() {
             const collection = getActiveCollection();
             const filtered = applySearch(collection);
-            const grid = document.getElementById("matches-grid");
 
             if (!filtered.length) {
                 renderEmptyState();
                 return;
             }
 
-            grid.innerHTML = filtered.map((match, index) => createCard(match, index)).join("");
+            matchesGrid.innerHTML = filtered.map((match, index) => createCard(match, index)).join("");
         }
 
         function setActiveTab(tabName) {
@@ -923,6 +1639,105 @@
                 tab.classList.toggle("active", tab.dataset.tab === tabName);
             });
             renderMatches();
+        }
+
+        function modalScoreMarkup(scoreText) {
+            if (!scoreText || scoreText === "N/A") {
+                return `<div class="drawer-score">Score details are not available for this match yet.</div>`;
+            }
+
+            const pieces = scoreText.split("|").map((item) => item.trim()).filter(Boolean);
+            if (pieces.length <= 1) {
+                return `<div class="drawer-score">${escapeHtml(scoreText)}</div>`;
+            }
+
+            const rows = pieces.map((piece) => `<li>${escapeHtml(piece)}</li>`).join("");
+            return `<div class="drawer-score"><ul>${rows}</ul></div>`;
+        }
+
+        function drawerTeamCard(team) {
+            const flag = escapeHtml(getFlagForTeam(team.name));
+            return `
+                <div class="drawer-team-card">
+                    ${renderTeamAvatar(team, "drawer")}
+                    <div>
+                        <span class="drawer-team-name">${escapeHtml(toSafeText(team.name, "Team"))}</span>
+                        <span class="drawer-team-flag">${flag}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openModal(matchKey) {
+            const match = state.matchLookup[matchKey];
+            if (!match) {
+                return;
+            }
+
+            state.activeMatchKey = matchKey;
+            const tag = match.__tag || matchTypeTag(match);
+            const badgeText = tag === "live" ? "Live" : tag === "recent" ? "Result" : "Upcoming";
+            const scoreText = toSafeText(match.score, "N/A");
+            const teamMarkup = (match.team_details || []).map(drawerTeamCard).join("");
+
+            drawerBody.innerHTML = `
+                <div class="drawer-pill-row">
+                    <span class="drawer-pill">${escapeHtml(badgeText)}</span>
+                    <span class="drawer-pill">${escapeHtml(toSafeText(match.match_type))}</span>
+                    <span class="drawer-pill">${escapeHtml(normalizeDate(match.date))}</span>
+                </div>
+                <p class="status">${escapeHtml(toSafeText(match.status, "Status unavailable"))}</p>
+                ${modalScoreMarkup(scoreText)}
+                <div class="drawer-team-grid">${teamMarkup}</div>
+                <div class="drawer-details">
+                    <div class="drawer-detail-line"><span>Match</span><strong>${escapeHtml(toSafeText(match.name))}</strong></div>
+                    <div class="drawer-detail-line"><span>Series</span><strong>${escapeHtml(toSafeText(match.series, "N/A"))}</strong></div>
+                    <div class="drawer-detail-line"><span>Venue</span><strong>${escapeHtml(toSafeText(match.venue))}</strong></div>
+                    <div class="drawer-detail-line"><span>Date</span><strong>${escapeHtml(normalizeDate(match.date))}</strong></div>
+                </div>
+            `;
+
+            modal.classList.add("open");
+            modal.setAttribute("aria-hidden", "false");
+            document.body.classList.add("modal-open");
+            drawerClose.focus();
+        }
+
+        function closeModal() {
+            modal.classList.remove("open");
+            modal.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("modal-open");
+            state.activeMatchKey = null;
+        }
+
+        function applyTheme(themeName) {
+            const theme = AVAILABLE_THEMES.includes(themeName) ? themeName : "broadcast";
+            state.theme = theme;
+            document.body.setAttribute("data-theme", theme);
+
+            themeButtons.forEach((button) => {
+                button.classList.toggle("active", button.dataset.theme === theme);
+            });
+
+            try {
+                localStorage.setItem(THEME_STORAGE_KEY, theme);
+            } catch (error) {
+                // Ignore storage issues.
+            }
+        }
+
+        function initializeTheme() {
+            let saved = "broadcast";
+            try {
+                const stored = localStorage.getItem(THEME_STORAGE_KEY);
+                if (stored) {
+                    saved = stored;
+                }
+            } catch (error) {
+                saved = "broadcast";
+            }
+
+            applyTheme(saved);
         }
 
         async function loadMatches(forceRefresh = false) {
@@ -943,6 +1758,7 @@
                 state.live = payload.live;
                 state.recent = payload.recent;
                 state.upcoming = payload.upcoming;
+                indexMatches(payload.allMatches);
 
                 updateTopCounts(payload.counts);
                 updateMeta(payload.servedFromCache, payload.cacheAge);
@@ -955,6 +1771,7 @@
                 state.live = [];
                 state.recent = [];
                 state.upcoming = [];
+                state.matchLookup = {};
                 updateTopCounts({ live: 0, recent: 0, upcoming: 0, total: 0 });
                 renderMatches();
             }
@@ -962,6 +1779,10 @@
 
         tabs.forEach((tab) => {
             tab.addEventListener("click", () => setActiveTab(tab.dataset.tab));
+        });
+
+        themeButtons.forEach((button) => {
+            button.addEventListener("click", () => applyTheme(button.dataset.theme));
         });
 
         searchInput.addEventListener("input", (event) => {
@@ -977,6 +1798,42 @@
             renderMatches();
         });
 
+        matchesGrid.addEventListener("click", (event) => {
+            const card = event.target.closest(".match-card[data-match-key]");
+            if (!card) {
+                return;
+            }
+
+            openModal(card.dataset.matchKey);
+        });
+
+        matchesGrid.addEventListener("keydown", (event) => {
+            const card = event.target.closest(".match-card[data-match-key]");
+            if (!card) {
+                return;
+            }
+
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openModal(card.dataset.matchKey);
+            }
+        });
+
+        modal.addEventListener("click", (event) => {
+            if (event.target.matches("[data-close-modal]")) {
+                closeModal();
+            }
+        });
+
+        drawerClose.addEventListener("click", closeModal);
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && modal.classList.contains("open")) {
+                closeModal();
+            }
+        });
+
+        initializeTheme();
         loadMatches();
         setInterval(() => loadMatches(false), 60000);
     </script>

@@ -17,8 +17,10 @@ API_KEY = os.getenv("CRICKET_API_KEY")
 CURRENT_MATCHES_URL = "https://api.cricapi.com/v1/currentMatches"
 HOME_MATCHES_URL = "https://api.cricapi.com/v1/cricScore"
 MATCH_INFO_URL = "https://api.cricapi.com/v1/match_info"
+MATCH_SCORECARD_URL = "https://api.cricapi.com/v1/match_scorecard"
 MATCHES_CACHE_TTL_SECONDS = int(os.getenv("MATCHES_CACHE_TTL_SECONDS", "300"))
 MATCH_INFO_CACHE_TTL_SECONDS = int(os.getenv("MATCH_INFO_CACHE_TTL_SECONDS", "21600"))
+MATCH_INFO_LIVE_CACHE_TTL_SECONDS = int(os.getenv("MATCH_INFO_LIVE_CACHE_TTL_SECONDS", "90"))
 
 # Cache for homepage match cards to reduce API hits.
 home_matches_cache = {
@@ -190,12 +192,35 @@ def fetch_match_info(match_id):
     )
 
 
+def fetch_match_scorecard(match_id):
+    return fetch_cricket_api(
+        MATCH_SCORECARD_URL,
+        {
+            "id": match_id
+        },
+        expect_list=False
+    )
+
+
 def first_non_none(*values):
     for value in values:
         if value is not None:
             return value
 
     return None
+
+
+def has_meaningful_value(value):
+    if value is None:
+        return False
+
+    if isinstance(value, str):
+        return bool(value.strip())
+
+    if isinstance(value, (list, tuple, set, dict)):
+        return len(value) > 0
+
+    return True
 
 
 def clean_text(value):
@@ -308,7 +333,69 @@ def extract_team_details(match):
     return sanitize_team_details(team_details)
 
 
+def stringify_value(value):
+    if value is None:
+        return None
+
+    if isinstance(value, str):
+        return clean_text(value)
+
+    if isinstance(value, (int, float)):
+        return str(value)
+
+    return None
+
+
+def build_score_fragment(runs, wickets, overs):
+    runs_text = stringify_value(runs)
+    wickets_text = stringify_value(wickets)
+    overs_text = stringify_value(overs)
+
+    section = ""
+    if runs_text:
+        section = runs_text
+        if wickets_text:
+            section += f"/{wickets_text}"
+
+    if overs_text:
+        if section:
+            section = f"{section} ({overs_text} ov)"
+        else:
+            section = f"{overs_text} ov"
+
+    return clean_text(section)
+
+
+def normalize_team_total_value(value):
+    direct = stringify_value(value)
+    if direct:
+        return direct
+
+    if isinstance(value, dict):
+        return build_score_fragment(
+            first_non_none(value.get("r"), value.get("runs"), value.get("total")),
+            first_non_none(value.get("w"), value.get("wickets")),
+            first_non_none(value.get("o"), value.get("overs"))
+        )
+
+    if isinstance(value, list):
+        pieces = []
+        for item in value:
+            line = format_innings_score(item)
+            if line:
+                pieces.append(line)
+
+        if pieces:
+            return " | ".join(pieces)
+
+    return None
+
+
 def format_innings_score(innings):
+    direct_text = stringify_value(innings)
+    if direct_text:
+        return direct_text
+
     if not isinstance(innings, dict):
         return None
 
@@ -317,28 +404,57 @@ def format_innings_score(innings):
         or innings.get("name")
         or innings.get("team")
     )
-    runs = first_non_none(innings.get("r"), innings.get("runs"))
-    wickets = first_non_none(innings.get("w"), innings.get("wickets"))
-    overs = first_non_none(innings.get("o"), innings.get("overs"))
+    score_blob = clean_text(
+        innings.get("score")
+        or innings.get("total")
+        or innings.get("summary")
+    )
+    score_line = build_score_fragment(
+        first_non_none(innings.get("r"), innings.get("runs")),
+        first_non_none(innings.get("w"), innings.get("wickets")),
+        first_non_none(innings.get("o"), innings.get("overs"))
+    )
+
+    if not score_line and score_blob:
+        score_line = score_blob
 
     section = innings_name or ""
-
-    if runs is not None and str(runs).strip():
-        score_line = str(runs).strip()
-        if wickets is not None and str(wickets).strip():
-            score_line += f"/{str(wickets).strip()}"
-
+    if score_line:
         section = f"{section} {score_line}".strip()
-
-    if overs is not None and str(overs).strip():
-        section = f"{section} ({str(overs).strip()} ov)".strip()
 
     return clean_text(section)
 
 
+def score_lines_from_score_map(raw_score):
+    if not isinstance(raw_score, dict):
+        return []
+
+    standard_keys = {
+        "inning", "name", "team", "score", "summary", "total",
+        "r", "runs", "w", "wickets", "o", "overs"
+    }
+
+    if set(raw_score.keys()).issubset(standard_keys):
+        return []
+
+    lines = []
+    for key, value in raw_score.items():
+        key_name = clean_text(str(key))
+        score_line = format_innings_score(value) or normalize_team_total_value(value)
+        if not score_line:
+            continue
+
+        if key_name and not score_line.lower().startswith(key_name.lower()):
+            lines.append(f"{key_name}: {score_line}")
+        else:
+            lines.append(score_line)
+
+    return lines
+
+
 def score_lines_from_team_totals(match, team_details):
-    t1_score = clean_text(match.get("t1s"))
-    t2_score = clean_text(match.get("t2s"))
+    t1_score = normalize_team_total_value(match.get("t1s"))
+    t2_score = normalize_team_total_value(match.get("t2s"))
 
     if not t1_score and not t2_score:
         return []
@@ -362,11 +478,6 @@ def score_lines_from_team_totals(match, team_details):
 def extract_score_lines(match, team_details):
     raw_score = match.get("score")
 
-    if isinstance(raw_score, str):
-        cleaned = clean_text(raw_score)
-        if cleaned:
-            return [cleaned]
-
     if isinstance(raw_score, list):
         innings_lines = []
         for innings in raw_score:
@@ -378,6 +489,15 @@ def extract_score_lines(match, team_details):
             return innings_lines
 
     if isinstance(raw_score, dict):
+        line = format_innings_score(raw_score)
+        if line:
+            return [line]
+
+        mapped_lines = score_lines_from_score_map(raw_score)
+        if mapped_lines:
+            return mapped_lines
+
+    if raw_score is not None:
         line = format_innings_score(raw_score)
         if line:
             return [line]
@@ -508,6 +628,244 @@ def simplify_match(match):
     }
 
 
+def merge_match_summaries(home_match, current_match):
+    merged = deepcopy(home_match)
+
+    if has_meaningful_value(current_match.get("status")):
+        merged["status"] = current_match.get("status")
+
+    for field in ("name", "match_type", "venue", "venue_timezone", "date", "series", "state"):
+        if not has_meaningful_value(merged.get(field)) and has_meaningful_value(current_match.get(field)):
+            merged[field] = current_match.get(field)
+
+    if not has_meaningful_value(merged.get("teams")) and has_meaningful_value(current_match.get("teams")):
+        merged["teams"] = deepcopy(current_match.get("teams"))
+
+    if not has_meaningful_value(merged.get("team_details")) and has_meaningful_value(current_match.get("team_details")):
+        merged["team_details"] = deepcopy(current_match.get("team_details"))
+
+    current_score_lines = current_match.get("score_lines") or []
+    if current_score_lines:
+        merged["score_lines"] = current_score_lines
+        merged["score"] = stringify_score(current_score_lines)
+    elif not has_meaningful_value(merged.get("score")) and has_meaningful_value(current_match.get("score")):
+        merged["score"] = current_match.get("score")
+
+    return merged
+
+
+def enrich_matches_with_current_feed(matches):
+    try:
+        current_matches_raw, warning = fetch_current_matches()
+    except requests.exceptions.RequestException:
+        return matches, "Live score enrichment is temporarily unavailable."
+
+    if warning:
+        return matches, f"Live score enrichment unavailable: {warning}"
+
+    if not isinstance(current_matches_raw, list):
+        return matches, None
+
+    current_by_id = {}
+    for raw_match in current_matches_raw:
+        if not isinstance(raw_match, dict):
+            continue
+
+        simplified = simplify_match(raw_match)
+        match_id = simplified.get("id")
+        if not match_id:
+            continue
+
+        current_by_id[match_id] = simplified
+
+    enriched = []
+    for match in matches:
+        match_id = match.get("id")
+        current_match = current_by_id.get(match_id)
+        if current_match:
+            enriched.append(merge_match_summaries(match, current_match))
+        else:
+            enriched.append(match)
+
+    return enriched, None
+
+
+def extract_person_name(value):
+    if isinstance(value, dict):
+        return clean_text(value.get("name") or value.get("fullName") or value.get("shortName"))
+
+    return clean_text(value)
+
+
+def normalize_inning_name(value):
+    cleaned = clean_text(value)
+    if not cleaned:
+        return None
+
+    return " ".join(cleaned.lower().replace("innings", "inning").split())
+
+
+def build_score_summary_lookup(score_data):
+    lookup = {}
+    ordered = []
+
+    if not isinstance(score_data, list):
+        return lookup, ordered
+
+    for score_entry in score_data:
+        if not isinstance(score_entry, dict):
+            continue
+
+        summary = {
+            "inning": clean_text(
+                score_entry.get("inning")
+                or score_entry.get("name")
+                or score_entry.get("team")
+            ),
+            "runs": first_non_none(score_entry.get("r"), score_entry.get("runs")),
+            "wickets": first_non_none(score_entry.get("w"), score_entry.get("wickets")),
+            "overs": first_non_none(score_entry.get("o"), score_entry.get("overs"))
+        }
+        ordered.append(summary)
+
+        summary_key = normalize_inning_name(summary.get("inning"))
+        if summary_key:
+            lookup[summary_key] = summary
+
+    return lookup, ordered
+
+
+def normalize_batting_rows(entries):
+    if not isinstance(entries, list):
+        return []
+
+    normalized = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+
+        row = {
+            "player": extract_person_name(
+                first_non_none(
+                    entry.get("batsman"),
+                    entry.get("batter"),
+                    entry.get("player"),
+                    entry.get("name")
+                )
+            ),
+            "dismissal": clean_text(
+                entry.get("dismissal-text")
+                or entry.get("dismissalText")
+                or entry.get("dismissal")
+            ),
+            "runs": first_non_none(entry.get("r"), entry.get("runs")),
+            "balls": first_non_none(entry.get("b"), entry.get("balls")),
+            "fours": first_non_none(entry.get("4s"), entry.get("fours")),
+            "sixes": first_non_none(entry.get("6s"), entry.get("sixes")),
+            "strike_rate": first_non_none(entry.get("sr"), entry.get("strikeRate"))
+        }
+
+        if any(has_meaningful_value(value) for value in row.values()):
+            normalized.append(row)
+
+    return normalized
+
+
+def normalize_bowling_rows(entries):
+    if not isinstance(entries, list):
+        return []
+
+    normalized = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+
+        row = {
+            "player": extract_person_name(
+                first_non_none(
+                    entry.get("bowler"),
+                    entry.get("player"),
+                    entry.get("name")
+                )
+            ),
+            "overs": first_non_none(entry.get("o"), entry.get("overs")),
+            "maidens": first_non_none(entry.get("m"), entry.get("maidens")),
+            "runs": first_non_none(entry.get("r"), entry.get("runs")),
+            "wickets": first_non_none(entry.get("w"), entry.get("wickets")),
+            "no_balls": first_non_none(entry.get("nb"), entry.get("noBalls")),
+            "wides": first_non_none(entry.get("wd"), entry.get("wides")),
+            "economy": first_non_none(entry.get("eco"), entry.get("economy"))
+        }
+
+        if any(has_meaningful_value(value) for value in row.values()):
+            normalized.append(row)
+
+    return normalized
+
+
+def normalize_scorecard(scorecard_data, score_data):
+    if not isinstance(scorecard_data, list):
+        return []
+
+    summary_lookup, ordered_summaries = build_score_summary_lookup(score_data)
+    normalized = []
+
+    for index, innings in enumerate(scorecard_data):
+        if not isinstance(innings, dict):
+            continue
+
+        inning_name = clean_text(
+            innings.get("inning")
+            or innings.get("name")
+            or innings.get("team")
+        )
+        inning_key = normalize_inning_name(inning_name)
+
+        summary = None
+        if inning_key:
+            summary = summary_lookup.get(inning_key)
+        if not summary and index < len(ordered_summaries):
+            summary = ordered_summaries[index]
+
+        totals = innings.get("totals") if isinstance(innings.get("totals"), dict) else {}
+
+        normalized_innings = {
+            "inning": inning_name or (summary or {}).get("inning"),
+            "runs": first_non_none(
+                (summary or {}).get("runs"),
+                totals.get("r"),
+                totals.get("runs"),
+                innings.get("r"),
+                innings.get("runs")
+            ),
+            "wickets": first_non_none(
+                (summary or {}).get("wickets"),
+                totals.get("w"),
+                totals.get("wickets"),
+                innings.get("w"),
+                innings.get("wickets")
+            ),
+            "overs": first_non_none(
+                (summary or {}).get("overs"),
+                totals.get("o"),
+                totals.get("overs"),
+                innings.get("o"),
+                innings.get("overs")
+            ),
+            "batting": normalize_batting_rows(innings.get("batting")),
+            "bowling": normalize_bowling_rows(innings.get("bowling"))
+        }
+
+        has_summary = any(
+            has_meaningful_value(normalized_innings.get(field))
+            for field in ("inning", "runs", "wickets", "overs")
+        )
+        if has_summary or normalized_innings["batting"] or normalized_innings["bowling"]:
+            normalized.append(normalized_innings)
+
+    return normalized
+
+
 def dedupe_matches(matches):
     seen = set()
     deduped = []
@@ -631,23 +989,45 @@ def write_cached_home_payload(payload):
     home_matches_cache["timestamp"] = time.time()
 
 
+def find_cached_match_summary(match_id):
+    cached_payload = home_matches_cache.get("payload")
+    if not isinstance(cached_payload, dict):
+        return None
+
+    for collection_key in ("matches", "live_matches", "recent_matches", "upcoming_matches"):
+        collection = cached_payload.get(collection_key)
+        if not isinstance(collection, list):
+            continue
+
+        for match in collection:
+            if not isinstance(match, dict):
+                continue
+
+            if str(match.get("id")) == str(match_id):
+                return deepcopy(match)
+
+    return None
+
+
 def read_cached_match_info(match_id):
     cached = match_info_cache.get(match_id)
     if not cached:
         return None
 
     age_seconds = int(time.time() - cached.get("timestamp", 0.0))
-    if age_seconds > MATCH_INFO_CACHE_TTL_SECONDS:
+    ttl_seconds = int(cached.get("ttl_seconds", MATCH_INFO_CACHE_TTL_SECONDS))
+    if age_seconds > ttl_seconds:
         match_info_cache.pop(match_id, None)
         return None
 
     return deepcopy(cached.get("payload"))
 
 
-def write_cached_match_info(match_id, payload):
+def write_cached_match_info(match_id, payload, ttl_seconds=MATCH_INFO_CACHE_TTL_SECONDS):
     match_info_cache[match_id] = {
         "timestamp": time.time(),
-        "payload": deepcopy(payload)
+        "payload": deepcopy(payload),
+        "ttl_seconds": int(ttl_seconds)
     }
 
 
@@ -715,6 +1095,7 @@ def matches():
             if match.get("id") or match.get("name") or match.get("teams")
         ]
         simplified_matches = dedupe_matches(simplified_matches)
+        simplified_matches, enrichment_warning = enrich_matches_with_current_feed(simplified_matches)
 
         live_matches = [match for match in simplified_matches if is_live_match(match)]
         recent_matches = [match for match in simplified_matches if is_recent_result(match)]
@@ -738,7 +1119,7 @@ def matches():
             "upcoming_matches": upcoming_matches,
             "served_from_cache": False,
             "cache_ttl_seconds": MATCHES_CACHE_TTL_SECONDS,
-            "warning": None
+            "warning": enrichment_warning
         }
 
         write_cached_home_payload(payload)
@@ -785,24 +1166,55 @@ def match_details(match_id):
         })
 
     try:
-        match_data, warning = fetch_match_info(match_id)
+        scorecard_data, scorecard_warning = fetch_match_scorecard(match_id)
+        info_data = None
+        info_warning = None
 
-        if warning:
+        if not isinstance(scorecard_data, dict):
+            info_data, info_warning = fetch_match_info(match_id)
+
+        merged_match = {}
+        if isinstance(info_data, dict):
+            merged_match.update(info_data)
+        if isinstance(scorecard_data, dict):
+            merged_match.update(scorecard_data)
+
+        if not merged_match:
+            details = first_non_none(info_warning, scorecard_warning, "Match details are unavailable for this id")
+            fallback_match = find_cached_match_summary(match_id)
+            if fallback_match:
+                fallback_match["id"] = fallback_match.get("id") or match_id
+                fallback_match["scorecard"] = fallback_match.get("scorecard") or []
+                fallback_match["details_warning"] = "Detailed scorecard is unavailable right now. Showing cached summary details."
+                return jsonify({
+                    "match": fallback_match,
+                    "served_from_cache": True
+                })
+
+            status_code = 503 if (info_warning or scorecard_warning) else 404
             return jsonify({
                 "error": "Failed to fetch match details from cricket API",
-                "details": warning
-            }), 503
+                "details": details
+            }), status_code
 
-        if not isinstance(match_data, dict):
-            return jsonify({
-                "error": "Match details are unavailable for this id"
-            }), 404
-
-        simplified = simplify_match(match_data)
+        simplified = simplify_match(merged_match)
         if not simplified.get("id"):
             simplified["id"] = match_id
 
-        write_cached_match_info(match_id, simplified)
+        scorecard = normalize_scorecard(merged_match.get("scorecard"), merged_match.get("score"))
+        details_warning = None
+        if scorecard_warning and not scorecard:
+            details_warning = "Detailed scorecard is not available for this match yet."
+        elif info_warning and not isinstance(info_data, dict):
+            details_warning = f"Some match metadata is unavailable: {info_warning}"
+
+        simplified["scorecard"] = scorecard
+        simplified["details_warning"] = details_warning
+        simplified["toss_winner"] = clean_text(merged_match.get("tossWinner"))
+        simplified["toss_choice"] = clean_text(merged_match.get("tossChoice"))
+
+        cache_ttl = MATCH_INFO_LIVE_CACHE_TTL_SECONDS if is_live_match(simplified) else MATCH_INFO_CACHE_TTL_SECONDS
+        write_cached_match_info(match_id, simplified, ttl_seconds=cache_ttl)
 
         return jsonify({
             "match": simplified,

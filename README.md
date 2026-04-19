@@ -19,7 +19,7 @@ A Dockerized Flask app that serves live cricket data from CricAPI, renders a ric
 
 ## Architecture
 
-![Architecture Diagram](docs/diagrams/architecture.svg)
+![Architecture Diagram](docs/diagrams/architecture.png)
 
 Flow summary: `Browser/UI -> Flask API -> CricAPI`, and `Flask metrics -> Prometheus -> Grafana`.
 
